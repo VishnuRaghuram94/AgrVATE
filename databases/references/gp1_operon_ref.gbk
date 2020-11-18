@@ -1,0 +1,122 @@
+LOCUS       14951_ERX332985_21      3129 bp    DNA     linear       16-JUN-2020
+DEFINITION  Staphylococcus aureus strain strain.
+ACCESSION   
+VERSION
+KEYWORDS    .
+SOURCE      Staphylococcus aureus
+  ORGANISM  Staphylococcus aureus
+            Unclassified.
+COMMENT     Annotated using prokka 1.14.6 from
+            https://github.com/tseemann/prokka.
+FEATURES             Location/Qualifiers
+     source          1..3129
+                     /organism="Staphylococcus aureus"
+                     /mol_type="genomic DNA"
+                     /strain="strain"
+     CDS             complement(1..717)
+                     /gene="agrA"
+                     /locus_tag="JMIOIMKP_00001"
+                     /inference="ab initio prediction:Prodigal:002006"
+                     /inference="similar to AA sequence:RefSeq:YP_005745411.1"
+                     /codon_start=1
+                     /transl_table=11
+                     /product="autoinducer sensor protein response regulator
+                     protein"
+                     /translation="MKIFICEDDPKQRENMVTIIKNYIMIEEKPMEIALATDNPYEVL
+                     EQAKNMNDIGCYFLDIQLSTDINGIKLGSEIRKHDPVGNIIFVTSHSELTYLTFVYKV
+                     AAMDFIFKDDPAELRTRIIDCLETAHTRLQLLSKDNSVETIELKRGSNSVYVQYDDIM
+                     FFESSTKSHRLIAHLDNRQIEFYGNLKELSQLDDRFFRCHNSFVVNRHNIESIDSKER
+                     IVYFKNKEHCYASVRNVKKI"
+     CDS             complement(736..2028)
+                     /locus_tag="JMIOIMKP_00002"
+                     /inference="ab initio prediction:Prodigal:002006"
+                     /inference="similar to AA sequence:RefSeq:YP_005740088.1"
+                     /codon_start=1
+                     /transl_table=11
+                     /product="accessory gene regulator protein C"
+                     /translation="MELLNRYNFVLFVLTQMILMFTIPAIISGIKYSKLDYFFIIVIS
+                     TLSLFLFKMFDSASLIILTSFIIIMYFVKIKWYSILLIMTSQIILYCANYMYIVIYAY
+                     ITKISDSIFVIFPSFFVVYVTISILFSYIINRVLKKISTPYLILNKGFLIVISTILLL
+                     TFSLFFFYSQINSDEAKVIRQYSFIFIGITIFLSILTFVISQFLLKEMKYKRNQEEIE
+                     TYYEYTLKIEAINNEMRKFRHDYVNILTTLSEYIREDDMPGLRDYFNKNIVPMKDNLQ
+                     MNAIKLNGIENLKVREIKGLITAKILRAQEMNIPISIEIPDEVSSINLNMIDLSRSIG
+                     IILDNAIEASTEIDDPIIRVAFIESENSVTFIVMNKCADDIPRIHELFQESFSTKGEG
+                     RGLGLSTLKEIADNADNVLLDTIIENGFFIQKVEIINN"
+     CDS             complement(2053..2193)
+                     /gene="agrD"
+                     /locus_tag="JMIOIMKP_00003"
+                     /inference="ab initio prediction:Prodigal:002006"
+                     /inference="similar to AA sequence:RefSeq:YP_005745409.1"
+                     /codon_start=1
+                     /transl_table=11
+                     /product="staphylococcal accessory gene regulator protein
+                     D"
+                     /translation="MNTLFNLFFDFITGILKNIGNIAAYSTCDFIMDEVEVPKELTQL
+                     HE"
+     CDS             complement(2190..2813)
+                     /gene="agrB"
+                     /locus_tag="JMIOIMKP_00004"
+                     /inference="ab initio prediction:Prodigal:002006"
+                     /inference="similar to AA sequence:RefSeq:YP_005745408.1"
+                     /codon_start=1
+                     /transl_table=11
+                     /product="accessory gene regulator B"
+                     /translation="MIKDCTKSYNDSEESGVKLNYFDNKIDQFATYLQKRNNLDHIQF
+                     LQVRLGMQVLAKNIGKLIVMYTIAYILNIFLFTLITNLTFYLIRRHAHGAHAPSSFWC
+                     YVESIILFILLPLVIVNFHINFLIMIILTVISLGVISVYAPAATKKKPIPVRLIKRKK
+                     YYAIIVSLTLFIITLIIKEPFAQFIQLGIIIEAITLLPIFFIKEDLK"
+ORIGIN      
+        1 ttatattttt ttaacgtttc tcaccgatgc atagcagtgt tctttatttt taaaatagac
+       61 aattcgctct ttcgaatcta tagattcaat attatggcga ttgacgacaa agctattatg
+      121 acatctaaag aaacgatcat ctaattgact cagttctttt aaattaccat aaaattcaat
+      181 ttgacggtta tctaaatggg caatgagtct gtgagatttt gttgatgatt caaaaaacat
+      241 aatatcatca tattgaacat acactgaatt actgccacgt tttaattcaa tcgtttcaac
+      301 gctattatct ttagacaaca attgtaagcg tgtatgtgca gtttctaaac agtctataat
+      361 tcgagttctt aattcagctg gatcatcttt aaaaataaaa tccatcgctg caactttgta
+      421 gacaaatgtt aaataggtaa gttcactgtg actcgtaacg aaaataatgt taccaactgg
+      481 gtcatgctta cgaatttcac tgcctaattt gataccatta atatcagttg aaagttgaat
+      541 atctaaaaag taacagccta tgtcattcat atttttagct tgctcaagca cctcataagg
+      601 attatcagtt gcgagggcaa tttccatagg cttttcttct atcattatat aatttttaat
+      661 aatggtaacc atgttttctc tttgttttgg atcgtcttcg caaatgaaaa ttttcataca
+      721 ttcacatcct tatggctagt tgttaataat ttcaactttt tgaataaaga aaccattttc
+      781 gataattgta tctaataaga cattgtctgc attatcagca atttctttta aagttgatag
+      841 acctaaacca cgaccttcac ctttagtaga aaaactttct tggaacaatt catgaatgcg
+      901 tggtatatca tcagcgcatt tattcataac aataaacgtt actgaatttt cactttcaat
+      961 aaatgcaacg cgaatgatag ggtcatcaat ttcagttgat gcctcaattg cattatcaag
+     1021 aataatacca atactgcgac ttaaatcgat catattcaag ttaatgctac ttacttcatc
+     1081 gggtatttcg atactaatcg gaatattcat ttcttgtgca cgtaaaattt tcgcagtaat
+     1141 taagccttta atttcacgta ctttaagatt ctcgatacca tttaatttta tagcattcat
+     1201 ttgtaaattg tctttcatag gtacaatatt tttattgaaa taatcacgta ggccaggcat
+     1261 gtcatcttct cgaatgtatt ctgaaagtgt cgttaagata ttgacataat catgacggaa
+     1321 cttgcgcatt tcgttgttga tagcttcaat cttcaatgta tattcataat aggtttcaat
+     1381 ttcttcttga ttacgtttat atttcatctc tttaaggaga aattgagaaa taacaaatgt
+     1441 taatatactt aaaaatatag tgataccaat aaaaataaaa gaatactgcc ttattacttt
+     1501 agcttcatcc gagtttattt gtgaataaaa gaaaaataat gaaaaagtaa gcagtaagat
+     1561 agtcgaaata actattaaaa atcctttgtt tagtattaga tatggtgtgc taattttttt
+     1621 gagaactcta tttattatat atgagaatag tatactaata gtcacataaa ctacaaaaaa
+     1681 gctagggaat attacaaata tactatcaga aattttggtg atatatgcat atataactat
+     1741 atacatgtag ttagcacagt atagaataat ctgcgaagtc ataatcaaca aaatagaata
+     1801 ccatttgatt ttgacaaaat acattataat aataaatgaa gttaatatga ttaaggacgc
+     1861 gctatcaaac attttaaata gaaataacga taatgtcgaa attactatga tgaaaaaata
+     1921 atcaagttta ctgtacttaa taccactaat tatagctggt attgtaaaca ttaatatcat
+     1981 ttgagttaat acgaataaaa caaaattata acgatttaat aattccacct actatcacac
+     2041 tctctattta aattattcgt gtaattgtgt taattctttt ggtacttcaa cttcatccat
+     2101 tatgaagtca caagtactat aagctgcgat gttaccaatg ttttttaaaa tcccagtaat
+     2161 aaaatcaaaa aataagttaa ataatgtatt cattttaagt cctccttaat aaagaaaata
+     2221 ggtaataatg taatagcttc tattatgatg cctaattgaa tgaattgggc aaatggctct
+     2281 ttgatgataa gtgtgataat gaaaagggtt aaactaacaa taatcgcata atattttttt
+     2341 cgtttaataa gtcgcacagg aatgggcttc tttttagttg ctgcaggagc atatactgag
+     2401 attacaccta aagaaataac tgttaaaata atcataatta aaaagttaat atgaaaattt
+     2461 actattacta aaggtaaaag tataaatagt ataatacttt ctacataaca ccaaaaagaa
+     2521 gaaggtgcat gtgcaccatg tgcatgtctt cttattaaat aaaatgttaa attcgtaatt
+     2581 aacgtaaaca gaaaaatgtt taaaatatag gcaatagtat acataacaat taatttacct
+     2641 atatttttag ctaagacctg catccctaat cgtacttgca aaaattgaat atgatctaag
+     2701 ttatttctct tttgaagata cgtggcaaac tggtcaattt tattatcaaa ataattcaat
+     2761 tttacaccac tctcctcact gtcattatac gatttagtac aatcttttat cattatattg
+     2821 cctaactgta ggaaataaat acttaactgt taaatgtaat ttgtatttaa tattttaaca
+     2881 taaaaaaatt tacagttaag aataaaaaac gactagttaa gaaaaattgg aaaataaatg
+     2941 cttttagcat gttttaatat aactagatca cagagatgtg atggaaaata gttgatgagt
+     3001 tgtttaattt taagaatttt tatcttaatt aaggaaggag tgatttcaat ggcacaagat
+     3061 atcatttcaa caatcggtga cttagtaaaa tggattatcg acacagtgaa caaattcact
+     3121 aaaaaataa
+//
