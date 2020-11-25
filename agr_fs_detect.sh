@@ -3,7 +3,7 @@
 #Vishnu Raghuram 2020-11-12
 #bash script for extracting intact agr operons from S. aureus and identifying frameshift mutations using agr-group specific references 
 
-USAGE=$(echo -e "USAGE: agr_fs_detect.sh <fasta file> <path to databases>\n")
+USAGE=$(echo -e "USAGE: agr_fs_detect.sh <fasta file> <path to databases>\nCheck README file for prerequsites\n")
 
 
 #Check if input is empty
@@ -43,17 +43,30 @@ usearch11.0.667_i86linux32 -search_oligodb $1 -db $databases_path/gp1234_motifs.
 
 #identify agr group from search_oligodb results
 if [ -z $(cat $fna_name-results/$fna_name-agr_gp.tab | cut -f2 | sort | uniq | cut -f1 -d"|" | uniq) ]
-then
-	echo -e "Unable to agr type\n"
+ then
+	echo -e "Unable to agr type\nUsing nhmmer to check if agrD is present\n"
+	
+	#NOVEL agrD DETECTION
+	#use nhmmer and check if length of top hit ~140bp
+	nhmmer --noali --tblout $fna_name-results/$fna_name-hmm.tab -E 0.01 $databases_path/agrD_hmm.hmm $1 > $fna_name-results/$fna_name-hmm-log.txt
+	
+	#Check if hmmer hit ~140bp long. if yes - possible non-canonical agrD. 
+	if [ -z $(grep -v "#" $fna_name-results/$fna_name-hmm.tab | sed 's/\s\+/\t/g' | awk 'BEGIN{FS=OFS="\t"};{if($6-$5 > 135) print $6-$5};') ]
+	 then
+		echo -e "Unable to find agrD\n"
+	else
+		echo -e "Non-canonical agrD found\n"
+	fi	
+	
+elif [ $(cat $fna_name-results/$fna_name-agr_gp.tab | cut -f2 | sort | uniq | cut -f1 -d"|" | uniq | wc -l) -ge 2 ]
+ then
+	echo -e "Fasta file has more than one agr type (multiple S. aureus sequences)\n"
 	exit
-# elif [ $(wc -l <file.txt) -ge 2 ]
-# then
-	# echo -e "Fasta file has more than one agr type (multiple S. aureus sequences)\n"
-	# :
 else
 	agr_gp=$(cat $fna_name-results/$fna_name-agr_gp.tab | cut -f2 | sort | uniq | cut -f1 -d"|" | uniq)
 	echo -e "agr typing successful, $agr_gp"
 fi
+
 
 
 #################################
@@ -71,6 +84,7 @@ else
 	echo -e "Unable to find agr operon, check $fna_name-results/$fna_name-pcr-log.txt"
 	exit	
 fi
+
 
 
 ################################
