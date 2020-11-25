@@ -33,13 +33,15 @@
 ### OUTPUTS:
 
 A new directory with suffix -results will be created
+
+***NOTE:*** **There are 15 possible kmers for each agr group. The analyses will continue even if only one kmer matches a given agr-group but it should be noted that < 5 kmers matching leads to a low confidence agr-group call. Please check fasta-agr_gp.tab for the number of kmers matched.** 
+
 	* fasta-agr_gp.tab: 
 		col 1: Accession
 		col 2: Contig ID
 		col 3: ID of matched agr group kmer
 		col 4: Percentage identity of match
 		
-		***NOTE:*** **There are 15 possible kmers for each agr group. The analyses will continue even if only one kmer matches a given agr-group but it should be noted that < 5 kmers matching leads to a low confidence agr-group call**
 	* fasta-agr_operon.fna:
 		Agr operon extracted from in-silico PCR using USEARCH -SEARCH_PCR in fasta format
 	
