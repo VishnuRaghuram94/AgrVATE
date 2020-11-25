@@ -7,7 +7,7 @@ USAGE=$(echo -e "USAGE: agr_fs_detect.sh <fasta file> <path to databases>\nCheck
 
 
 #Check if input is empty
-if [ -z "$1" ] 
+if [ -z "$1" ]
 then
 	echo -e "No input file given\n$USAGE"
 	exit
@@ -24,7 +24,7 @@ else
 fi
 
 #check if results directory already exists
-if [ -d $fna_name-results ]
+if [[ -d $fna_name-results ]]
 then
 	echo "Results directory already exists, cannot overwrite"
 	exit
@@ -39,35 +39,56 @@ fi
 ################################
 
 #fna file searched against agr typing kmers using usearch oligodb and write output to agrgp_tab
-usearch11.0.667_i86linux32 -search_oligodb $1 -db $databases_path/gp1234_motifs.fasta  -maxdiffs 0 -userfields query+target+evalue+id -strand both -userout $fna_name-results/$fna_name-agr_gp.tab &>$fna_name-results/$fna_name-usearch_log.txt
+usearch11.0.667_i86linux32 -search_oligodb $1 -db $databases_path/gp1234_motifs.fasta  -maxdiffs 0 -userfields query+target+evalue+id+qlo+qhi -strand both -userout $fna_name-results/$fna_name-agr_gp.tab &>$fna_name-results/$fna_name-usearch_log.txt
 
 #identify agr group from search_oligodb results
-if [ -z $(cat $fna_name-results/$fna_name-agr_gp.tab | cut -f2 | sort | uniq | cut -f1 -d"|" | uniq) ]
+if [[ $(cat $fna_name-results/$fna_name-agr_gp.tab | cut -f2 | sort | uniq | cut -f1 -d"|" | uniq | wc -l) -ge 2 ]]
  then
-	echo -e "Unable to agr type\nUsing nhmmer to check if agrD is present\n"
-	
-	#NOVEL agrD DETECTION
-	#use nhmmer and check if length of top hit ~140bp
-	nhmmer --noali --tblout $fna_name-results/$fna_name-hmm.tab -E 0.01 $databases_path/agrD_hmm.hmm $1 > $fna_name-results/$fna_name-hmm-log.txt
-	
-	#Check if hmmer hit ~140bp long. if yes - possible non-canonical agrD. 
-	if [ -z $(grep -v "#" $fna_name-results/$fna_name-hmm.tab | sed 's/\s\+/\t/g' | awk 'BEGIN{FS=OFS="\t"};{if($6-$5 > 135) print $6-$5};') ]
-	 then
-		echo -e "Unable to find agrD\n"
-	else
-		echo -e "Non-canonical agrD found\n"
-	fi	
-	
-elif [ $(cat $fna_name-results/$fna_name-agr_gp.tab | cut -f2 | sort | uniq | cut -f1 -d"|" | uniq | wc -l) -ge 2 ]
- then
-	echo -e "Fasta file has more than one agr type (multiple S. aureus sequences)\n"
+	echo -e "Fasta file has more than one agr type (multiple S. aureus sequences)\n Cannot proceed to frameshift search"
 	exit
+	
+elif [[ -z $(cat $fna_name-results/$fna_name-agr_gp.tab | cut -f2 | sort | uniq | cut -f1 -d"|" | uniq) ]]
+ then
+	echo -e "Unable to agr type"
+	agr_gp="unknown"
+	agrD_nhmmer=1
+	
+elif [[ $(cat $fna_name-results/$fna_name-agr_gp.tab | wc -l) -le 4 ]]
+ then
+	echo -e "Low confidence agr-typing"
+	agrD_nhmmer=1
+	agr_gp=$(cat $fna_name-results/$fna_name-agr_gp.tab | cut -f2 | sort | uniq | cut -f1 -d"|" | uniq)
+
 else
 	agr_gp=$(cat $fna_name-results/$fna_name-agr_gp.tab | cut -f2 | sort | uniq | cut -f1 -d"|" | uniq)
 	echo -e "agr typing successful, $agr_gp"
 fi
 
 
+###########################
+#### NOVEL agrD SEARCH ####
+###########################
+
+if [[ $agrD_nhmmer == 1 ]]
+then
+	#use nhmmer to search for sequence matching canonical S. aureus agrD
+	nhmmer --noali --tblout $fna_name-results/$fna_name-hmm.tab -E 0.01 $databases_path/agrD_hmm.hmm $1 > $fna_name-results/$fna_name-hmm-log.txt
+
+	#Check if hmmer hit ~120bp long. if yes - possible non-canonical agrD. 
+	if [[ -z $(grep -v "#" $fna_name-results/$fna_name-hmm.tab | sed 's/\s\+/\t/g' | awk 'BEGIN{FS=OFS="\t"};{if($6-$5 > 120) print $0};') ]]
+	 then
+		echo -e "Unable to find agrD"
+	else
+		echo -e "Possible non-canonical S. aureus agrD found"
+	fi	
+
+	
+fi
+
+if [[ $agr_gp == "unknown" ]]
+then
+	exit
+fi
 
 #################################
 ##### EXTRACTING AGR OPERON #####
@@ -77,14 +98,13 @@ fi
 usearch11.0.667_i86linux32 -search_pcr $1 -db $databases_path/agr_operon_primers.fa -strand both -maxdiffs 8 -minamp 3000 -maxamp 5000 -ampout $fna_name-results/$fna_name-agr_operon.fna &>$fna_name-results/$fna_name-pcr-log.txt
 
 #Check if agr operon file is empty
-if [ -s $fna_name-results/$fna_name-agr_operon.fna ] 
+if [[ -s $fna_name-results/$fna_name-agr_operon.fna ]] 
 then
 	echo -e "agr operon extraction successful"
 else	
 	echo -e "Unable to find agr operon, check $fna_name-results/$fna_name-pcr-log.txt"
 	exit	
 fi
-
 
 
 ################################
@@ -95,7 +115,7 @@ fi
 snippy --outdir $fna_name-results/snippy --ctgs $fna_name-results/$fna_name-agr_operon.fna --ref $databases_path/references/$agr_gp-operon_ref.gbk 2> $fna_name-results/$fna_name-snippy-log.txt
 
 #Check if snps file is empty
-if [ -s $fna_name-results/snippy/snps.tab ] 
+if [[ -s $fna_name-results/snippy/snps.tab ]]
 then
 	echo -e "Snippy successful"
 else	
@@ -108,7 +128,7 @@ awk -v i="$fna_name-results" 'BEGIN{FS=OFS="\t"};{if($7=="CDS") print i,$2,$3,$1
 
 
 #Check if frameshifts file is empty
-if [ -s $fna_name-results/$fna_name-agr_operon_frameshifts.tab ] 
+if [[ -s $fna_name-results/$fna_name-agr_operon_frameshifts.tab ]] 
 then
 	echo -e "Frameshifts in agr operon found, check $fna_name-results/$fna_name-agr_operon_frameshifts.tab"
 else	
