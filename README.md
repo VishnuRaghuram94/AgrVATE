@@ -4,14 +4,21 @@
 &nbsp;
 
 ### PREREQUISITES:
-	[Usearch 32 bit linux](https://drive5.com/usearch/)
-	[Snippy](https://github.com/tseemann/snippy)
-	[HMMER](http://hmmer.org/)
-	databases file for agr group typing and variant calling
-	databases/
+	* [Usearch 32 bit linux](https://drive5.com/usearch/)
+	
+	* [Snippy](https://github.com/tseemann/snippy)
+	
+	* [HMMER](http://hmmer.org/)
+	
+	* databases file for agr group typing and variant calling
+		databases/
+			├── agrD_hmm.hmm
+			├── agrD_hmm.hmm.h3f
+			├── agrD_hmm.hmm.h3i
+			├── agrD_hmm.hmm.h3m
+			├── agrD_hmm.hmm.h3p
 			├── agr_operon_primers.fa
 			├── gp1234_motifs.fasta
-			├── agrD_hmm.hmm
 			└── references
 				├── gp1-operon_ref.gbk
 				├── gp2-operon_ref.gbk
@@ -32,7 +39,7 @@
 
 ### OUTPUTS:
 
-A new directory with suffix -results will be created
+A new directory with suffix -results  will be created
 
 ***NOTE:*** **There are 15 possible kmers for each agr group. The analyses will continue even if only one kmer matches a given agr-group but it should be noted that < 5 kmers matching leads to a low confidence agr-group call. Please check fasta-agr_gp.tab for the number of kmers matched.** 
 
@@ -41,11 +48,13 @@ A new directory with suffix -results will be created
 		col 2: Contig ID
 		col 3: ID of matched agr group kmer
 		col 4: Percentage identity of match
+		col 5: Start position of kmer alignment on input sequence
+		col 6: End position of kmer alignment on input sequence
 		
 	* fasta-agr_operon.fna:
 		Agr operon extracted from in-silico PCR using USEARCH -SEARCH_PCR in fasta format
 	
-	*fasta-agr_operon_frameshifts.tab
+	* fasta-agr_operon_frameshifts.tab
 		Frameshift mutations in extracted agr operon detected by Snippy. An agr-group specific reference sequence is used to call variants. 
 	
 	* fna-usearch_log.txt:
@@ -58,8 +67,8 @@ A new directory with suffix -results will be created
 	* fasta-agr_operon_frameshifts.tab
 		Standard output of [USEARCH -SEARCH_PCR](https://drive5.com/usearch/manual/cmd_search_pcr.html)
 	
-	*fasta-snippy_log.txt:
+	* fasta-snippy_log.txt:
 		Standard output of [Snippy](https://github.com/tseemann/snippy)
 		
-	*snippy/
+	* snippy/
 		All output files of [Snippy](https://github.com/tseemann/snippy)
