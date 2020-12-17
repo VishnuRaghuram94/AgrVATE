@@ -6,6 +6,7 @@
 
 USAGE=$(echo -e "USAGE: agr_fs_detect.sh <fasta file> <path to databases>\nCheck README file for prerequsites\nagr_fs_detect.sh -h #to print this help message\nagr_fs_detect.sh -v #to print version\n")
 
+#Help and version options
 while getopts ":hv" option; do
 	case $option in 
 		h) #Print usage if option -h is given
@@ -62,9 +63,6 @@ fi
 #### AGR TYPING KMER SEARCH ####
 ################################
 
-#fna file searched against agr typing kmers using usearch oligodb and write output to agrgp_tab REPLACED BY BLASTN
-#usearch11.0.667_i86linux32 -search_oligodb $1 -db $databases_path/gp1234_motifs.fasta  -maxdiffs 0 -userfields query+target+evalue+id+qlo+qhi -strand both -userout $fna_name-results/$fna_name-agr_gp.tab &>$fna_name-results/$fna_name-usearch_log.txt
-
 #fna file searched against agr typing kmers using blastn and write output to agrgp_tab
 blastn -query $databases_path/gp1234_all_motifs.fna -subject $1 -outfmt "6 sseqid qseqid evalue pident sstart send" -max_hsps 1 -perc_identity 100 -qcov_hsp_perc 100 -out $fna_name-results/$fna_name-agr_gp.tab &>$fna_name-results/$fna_name-blastn_log.txt
 
@@ -72,34 +70,54 @@ blastn -query $databases_path/gp1234_all_motifs.fna -subject $1 -outfmt "6 sseqi
 
 #check no. of agr group kmers matched. exit if more than one agr group found
 if [[ $(cat $fna_name-results/$fna_name-agr_gp.tab | cut -f2 | sort | uniq | cut -f1 -d"|" | uniq | wc -l) -ge 2 ]]
- then
-	echo -e "Fasta file has more than one agr type (multiple S. aureus sequences)\n Cannot proceed to frameshift search"
-	exit
-else
-	agr_match=$(cat $fna_name-results/$fna_name-agr_gp.tab | wc -l)
-fi
+ then #multiple agr groups
+	echo -e "Fasta file has more than one agr type (multiple S. aureus sequences)\n Choosing highest confidence agr type"
 	
-
+	#top agr gp match
+	agr_gp=$(cat $fna_name-results/$fna_name-agr_gp.tab  | cut -f2 | sort | uniq | cut -f1 -d"|" | uniq -c | sort -k1 -nr | head -1 | sed 's/^\s\+//g' | cut -f2 -d " ")
 	
-if [[ $agr_match == 0 ]]
- then
-	echo -e "Unable to agr type"
-	agr_gp="unknown"
-	agrD_nhmmer=1
+	#score for top agr gp match
+	agr_match=$(cat $fna_name-results/$fna_name-agr_gp.tab  | cut -f2 | sort | uniq | cut -f1 -d"|" | uniq -c | sort -k1 -nr | head -1 | sed 's/^\s\+//g' | cut -f1 -d " ")	
 	
-elif [[ $agr_match -le 4 ]]
- then
-	echo -e "Low confidence agr-typing"
-	agrD_nhmmer=1
-	agr_gp=$(cat $fna_name-results/$fna_name-agr_gp.tab | cut -f2 | sort | uniq | cut -f1 -d"|" | uniq)
-
-else
-	agr_gp=$(cat $fna_name-results/$fna_name-agr_gp.tab | cut -f2 | sort | uniq | cut -f1 -d"|" | uniq)
+	multiple="m"
 	canonical=1
-	echo -e "agr typing successful, $agr_gp"
+	
+	#if top match is low confidence
+	if [[ $agr_match -le 4 ]]
+	 then
+		echo -e "Multiple agr types found all with low confidence. Cannot proceed to frameshift detection"
+		canonical="u"
+		fs="u"
+		#summary file
+		echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" > $fna_name-results/$fna_name-summary.tab
+		exit
+	fi	
+else #single agr group
+	
+	agr_match=$(cat $fna_name-results/$fna_name-agr_gp.tab | wc -l)
+	#Check match score. if 0 then unknown type. if less than 4 then low confidence type. In both cases hmm search for agrD will be done.	
+	if [[ $agr_match == 0 ]]
+	 then
+		echo -e "Unable to agr type"
+		multiple="u"
+		agr_gp="u"
+		agrD_nhmmer=1
+		
+	elif [[ $agr_match -le 4 ]]
+	 then
+		echo -e "Low confidence agr-typing"
+		multiple="s"
+		agrD_nhmmer=1
+		agr_gp=$(cat $fna_name-results/$fna_name-agr_gp.tab | cut -f2 | sort | uniq | cut -f1 -d"|" | uniq)
+
+	else
+		multiple="s"
+		agr_gp=$(cat $fna_name-results/$fna_name-agr_gp.tab | cut -f2 | sort | uniq | cut -f1 -d"|" | uniq)
+		canonical=1
+		echo -e "agr typing successful, $agr_gp"
+	fi
 fi
-
-
+	
 
 ###########################
 #### NOVEL agrD SEARCH ####
@@ -123,7 +141,7 @@ fi
 
 
 #summary file
-echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical" > $fna_name-results/$fna_name-summary.tab
+#echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple" > $fna_name-results/$fna_name-summary.tab
 
 #################################
 ##### EXTRACTING AGR OPERON #####
@@ -137,6 +155,9 @@ if [[ -x $path_to_usearch ]]
     echo -e "usearch found"
 else
 	echo -e "usearch11.0.667_i86linux32 not in path, cannot perform frameshift detection\n please download usearch11.0.667_i86linux32 from https://www.drive5.com/usearch/download.html"
+	fs="u"
+	#summary file
+	echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" > $fna_name-results/$fna_name-summary.tab
 	exit
 fi
 
@@ -150,12 +171,18 @@ then
 	echo -e "agr operon extraction successful"
 else	
 	echo -e "Unable to find agr operon, check $fna_name-results/$fna_name-pcr-log.txt"
+	fs="u"
+	#summary file
+	echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" > $fna_name-results/$fna_name-summary.tab
 	exit	
 fi
 
-if [[ $agr_gp == "unknown" ]]
+if [[ $agr_gp == "u" ]]
 then
 	echo -e "Unable to determine agr group, cannot perform frameshift detection"
+	fs="u"
+	#summary file
+	echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" > $fna_name-results/$fna_name-summary.tab
 	exit
 fi
 
@@ -172,11 +199,18 @@ then
 	echo -e "Snippy successful"
 else	
 	echo -e "Snippy unsuccessful, check $fna_name-results/$fna_name-snippy-log.txt"
+	fs="u"
+	#summary file
+	echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" > $fna_name-results/$fna_name-summary.tab
 	exit	
 fi
 
 #Filtering out frameshifts in coding regions from snippy data
-awk -v i="$fna_name-results" 'BEGIN{FS=OFS="\t"};{if($7=="CDS") print i,$2,$3,$11,$13}' $fna_name-results/$fna_name-snippy/snps.tab | sed 's/ /\t/g' | grep -E -v 'missense_variant' | grep -E -v 'synonymous_variant' > $fna_name-results/$fna_name-agr_operon_frameshifts.tab
+awk -v i="$fna_name" 'BEGIN{FS=OFS="\t"};{if($7=="CDS") print i,$2,$3,$11,$13}' $fna_name-results/$fna_name-snippy/snps.tab | sed 's/ /\t/g' | grep -E -v 'missense_variant' | grep -E -v 'synonymous_variant' > $fna_name-results/$fna_name-agr_operon_frameshifts.tab
+
+fs=$(cat $fna_name-results/$fna_name-agr_operon_frameshifts.tab | wc -l)
+#summary file
+echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" > $fna_name-results/$fna_name-summary.tab
 
 
 #Check if frameshifts file is empty
@@ -187,3 +221,4 @@ else
 	echo -e "No frameshifts found"
 	exit	
 fi
+
