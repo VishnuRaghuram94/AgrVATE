@@ -71,7 +71,17 @@ A new directory with suffix -results  will be created
 		col 4: Percentage identity of match
 		col 5: Start position of kmer alignment on input sequence
 		col 6: End position of kmer alignment on input sequence
+
+* **fasta-agr_operon_frameshifts.tab**
+
+	Frameshift mutations in CDS of extracted agr operon detected by Snippy. An agr-group specific reference sequence is used to call variants. 
 	
+		col 1: Filename
+		col 2: Position on agr operon compared to reference
+		col 3: Type of frameshift
+		col 4: Effect of mutation
+		col 5: Gene
+		
 * **fasta-blastn-log.txt:**
 
 	Standard output of ncbi blastn 
@@ -79,10 +89,6 @@ A new directory with suffix -results  will be created
 * **fasta-agr_operon.fna:**
 
 	Agr operon extracted from in-silico PCR using USEARCH -SEARCH_PCR in fasta format
-	
-* **fasta-agr_operon_frameshifts.tab**
-
-	Frameshift mutations in extracted agr operon detected by Snippy. An agr-group specific reference sequence is used to call variants. 
 	
 * **fasta-hmm.tab:**
 
@@ -94,7 +100,7 @@ A new directory with suffix -results  will be created
 	Standard output of [nhmmer](http://hmmer.org/documentation.html)
 	This file is present only if the agr group is untypeable. 
 		
-* **fasta-agr_operon_frameshifts.tab**
+* **fasta-pcr-log.tab**
 
 	Standard output of [USEARCH -SEARCH_PCR](https://drive5.com/usearch/manual/cmd_search_pcr.html)
 	
