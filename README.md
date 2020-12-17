@@ -5,6 +5,10 @@
 
 ### PREREQUISITES:
 	* [Usearch 32 bit linux](https://drive5.com/usearch/)
+		Due to Usearch's license, it cannot be provided with the conda installation
+		Please download and extract usearch11.0.667 from [here](https://www.drive5.com/downloads/usearch11.0.667_i86linux32.gz) and add it to your PATH
+	
+	* [NCBI blast+](https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/)
 	
 	* [Snippy](https://github.com/tseemann/snippy)
 	
@@ -18,7 +22,7 @@
 			├── agrD_hmm.hmm.h3m
 			├── agrD_hmm.hmm.h3p
 			├── agr_operon_primers.fa
-			├── gp1234_motifs.fasta
+			├── gp1234_motifs_all.fasta
 			└── references
 				├── gp1-operon_ref.gbk
 				├── gp2-operon_ref.gbk
@@ -30,10 +34,12 @@
 ---
 
 ### USAGE:
-	agr_fs_detect.sh <fasta_file> <path_to_databases>
+	agr_fs_detect.sh <fasta_file> <path_to_databases> [-hv]
 	
 	* <fasta_file> : S. aureus genome assembly in fasta format. Can also be S. aureus metagenome. 
 	* <path_to_databases>  : Absolute path to database files. Default " ./databases "
+	* -h to print this help message
+	* -v to print version
 &nbsp;
 ---
 
@@ -43,13 +49,22 @@ A new directory with suffix -results  will be created
 
 ***NOTE:*** **There are 15 possible kmers for each agr group. The analyses will continue even if only one kmer matches a given agr-group but it should be noted that < 5 kmers matching leads to a low confidence agr-group call. Please check fasta-agr_gp.tab for the number of kmers matched.** 
 
+	* fasta-summary.tab:
+		col 1: Filename
+		col 2: Agr group
+		col 3: Match score for agr group (maximum 15; 0 means untypeable; < 5 means low confidence)
+		col 4: Canonical or non-canonical agrD ( 1 means canonical; 0 means non-canonical; u means unknown)
+		
 	* fasta-agr_gp.tab: 
-		col 1: Accession
-		col 2: Contig ID
-		col 3: ID of matched agr group kmer
+		col 1: Assembly Contig ID
+		col 2: ID of matched agr group kmer
+		col 3: evalue
 		col 4: Percentage identity of match
 		col 5: Start position of kmer alignment on input sequence
 		col 6: End position of kmer alignment on input sequence
+	
+	* fasta-blastn-log.txt:
+		Standard output of ncbi blastn 
 		
 	* fasta-agr_operon.fna:
 		Agr operon extracted from in-silico PCR using USEARCH -SEARCH_PCR in fasta format
@@ -57,18 +72,19 @@ A new directory with suffix -results  will be created
 	* fasta-agr_operon_frameshifts.tab
 		Frameshift mutations in extracted agr operon detected by Snippy. An agr-group specific reference sequence is used to call variants. 
 	
-	* fna-usearch_log.txt:
-		Tabular output of [USEARCH -SEARCH_OLIGODB](https://drive5.com/usearch/manual/cmd_search_oligodb.html)
-	
 	* fasta-hmm.tab:
+		Tabular output of [nhmmer](http://hmmer.org/documentation.html)
+		This file is present only if the agr group is untypeable. 
+		
+	* fasta-hmm-log.txt:
 		Standard output of [nhmmer](http://hmmer.org/documentation.html)
 		This file is present only if the agr group is untypeable. 
-	
+		
 	* fasta-agr_operon_frameshifts.tab
 		Standard output of [USEARCH -SEARCH_PCR](https://drive5.com/usearch/manual/cmd_search_pcr.html)
 	
 	* fasta-snippy_log.txt:
 		Standard output of [Snippy](https://github.com/tseemann/snippy)
 		
-	* snippy/
+	* fasta-snippy/
 		All output files of [Snippy](https://github.com/tseemann/snippy)
