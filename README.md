@@ -1,20 +1,21 @@
 ### agr_fs_detect.sh 
 ###### Vishnu Raghuram 2020-11-12 
 ###### bash script for detecting S. aureus agr group from genome assembly and calling variants in agr operon using group-specific reference
-&nbsp;
+
 
 ### PREREQUISITES:
-	* [Usearch 32 bit linux](https://drive5.com/usearch/)
-		Due to Usearch's license, it cannot be provided with the conda installation
-		Please download and extract usearch11.0.667 from [here](https://www.drive5.com/downloads/usearch11.0.667_i86linux32.gz) and add it to your PATH
+* [Usearch 32 bit linux](https://drive5.com/usearch/)
+
+	*Due to Usearch's license, it cannot be provided with the conda installation. Please download and extract usearch11.0.667 from [here](https://www.drive5.com/downloads/usearch11.0.667_i86linux32.gz) and add it to your PATH*
 	
-	* [NCBI blast+](https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/)
+* [NCBI blast+](https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/)
 	
-	* [Snippy](https://github.com/tseemann/snippy)
+* [Snippy](https://github.com/tseemann/snippy)
 	
-	* [HMMER](http://hmmer.org/)
+* [HMMER](http://hmmer.org/)
 	
-	* databases file for agr group typing and variant calling
+* Databases folder for agr group typing and variant calling
+		
 		databases/
 			├── agrD_hmm.hmm
 			├── agrD_hmm.hmm.h3f
