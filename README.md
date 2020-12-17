@@ -37,7 +37,7 @@
 ### USAGE:
 	agr_fs_detect.sh <fasta_file> <path_to_databases> [-hv]
 	
-	* <fasta_file> : S. aureus genome assembly in fasta format. Can also be S. aureus metagenome. 
+	* <fasta_file> : S. aureus genome assembly in fasta format. 
 	* <path_to_databases>  : Absolute path to database files. Default " ./databases "
 	* -h to print this help message
 	* -v to print version
@@ -53,9 +53,15 @@ A new directory with suffix -results  will be created
 * **fasta-summary.tab:**
 
 		col 1: Filename
-		col 2: Agr group
+		col 2: Agr group (gp1/gp2/gp3/gp4). 'u' means unknown. If multiple agr groups were found (col 5 = m), the displayed agr group is the majority/highest confidence. 
 		col 3: Match score for agr group (maximum 15; 0 means untypeable; < 5 means low confidence)
 		col 4: Canonical or non-canonical agrD ( 1 means canonical; 0 means non-canonical; u means unknown)
+		col 5: If multiple agr groups were found, likely due to multiple S. aureus isolates in sequence ( s means single, m means multiple, u means unknown )
+		col 6: Number of frameshifts found in CDS of extracted agr operon ( Column is 'u' if agr operon was not extracted )
+		
+	*If multiple assemblies are run, use this command from parent directory to output a consolidated summary table for all samples*
+	
+		cat ./*-results/*-summary.tab > filename.tab
 		
 * **fasta-agr_gp.tab:** 
 
