@@ -50,13 +50,15 @@ A new directory with suffix -results  will be created
 
 ***NOTE:*** **There are 15 possible kmers for each agr group. The analyses will continue even if only one kmer matches a given agr-group but it should be noted that < 5 kmers matching leads to a low confidence agr-group call. Please check fasta-agr_gp.tab for the number of kmers matched.** 
 
-	* fasta-summary.tab:
+* **fasta-summary.tab:**
+
 		col 1: Filename
 		col 2: Agr group
 		col 3: Match score for agr group (maximum 15; 0 means untypeable; < 5 means low confidence)
 		col 4: Canonical or non-canonical agrD ( 1 means canonical; 0 means non-canonical; u means unknown)
 		
-	* fasta-agr_gp.tab: 
+* **fasta-agr_gp.tab:** 
+
 		col 1: Assembly Contig ID
 		col 2: ID of matched agr group kmer
 		col 3: evalue
@@ -64,28 +66,36 @@ A new directory with suffix -results  will be created
 		col 5: Start position of kmer alignment on input sequence
 		col 6: End position of kmer alignment on input sequence
 	
-	* fasta-blastn-log.txt:
-		Standard output of ncbi blastn 
+* **fasta-blastn-log.txt:**
+
+	Standard output of ncbi blastn 
 		
-	* fasta-agr_operon.fna:
-		Agr operon extracted from in-silico PCR using USEARCH -SEARCH_PCR in fasta format
+* **fasta-agr_operon.fna:**
+
+	Agr operon extracted from in-silico PCR using USEARCH -SEARCH_PCR in fasta format
 	
-	* fasta-agr_operon_frameshifts.tab
-		Frameshift mutations in extracted agr operon detected by Snippy. An agr-group specific reference sequence is used to call variants. 
+* **fasta-agr_operon_frameshifts.tab**
+
+	Frameshift mutations in extracted agr operon detected by Snippy. An agr-group specific reference sequence is used to call variants. 
 	
-	* fasta-hmm.tab:
-		Tabular output of [nhmmer](http://hmmer.org/documentation.html)
-		This file is present only if the agr group is untypeable. 
+* **fasta-hmm.tab:**
+
+	Tabular output of [nhmmer](http://hmmer.org/documentation.html)
+	This file is present only if the agr group is untypeable. 
 		
-	* fasta-hmm-log.txt:
-		Standard output of [nhmmer](http://hmmer.org/documentation.html)
-		This file is present only if the agr group is untypeable. 
+* **fasta-hmm-log.txt:**
+
+	Standard output of [nhmmer](http://hmmer.org/documentation.html)
+	This file is present only if the agr group is untypeable. 
 		
-	* fasta-agr_operon_frameshifts.tab
-		Standard output of [USEARCH -SEARCH_PCR](https://drive5.com/usearch/manual/cmd_search_pcr.html)
+* **fasta-agr_operon_frameshifts.tab**
+
+	Standard output of [USEARCH -SEARCH_PCR](https://drive5.com/usearch/manual/cmd_search_pcr.html)
 	
-	* fasta-snippy_log.txt:
-		Standard output of [Snippy](https://github.com/tseemann/snippy)
+* **fasta-snippy_log.txt:**
 		
-	* fasta-snippy/
-		All output files of [Snippy](https://github.com/tseemann/snippy)
+	Standard output of [Snippy](https://github.com/tseemann/snippy)
+		
+* **fasta-snippy/**
+	
+	All output files of [Snippy](https://github.com/tseemann/snippy)
