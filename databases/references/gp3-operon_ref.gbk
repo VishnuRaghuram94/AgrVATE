@@ -1,0 +1,167 @@
+LOCUS       17442_SRX1053863_24                3483 bp DNA     linear   22-DEC-2020
+DEFINITION  Staphylococcus aureus strain strain.
+ACCESSION   SRX1053863
+VERSION     .
+KEYWORDS    .
+SOURCE      Staphylococcus aureus
+  ORGANISM  Staphylococcus aureus
+COMMENT     Annotated using prokka 1.14.6 from 
+            https://github.com/tseemann/prokka.
+FEATURES             Location/Qualifiers
+     source          1..3483
+                     /organism="Staphylococcus aureus"
+                     /strain="strain"
+                     /mol_type="genomic DNA"
+     gene            complement(1..717)
+                     /gene="agrA"
+                     /locus_tag="CHPLLPKM_00001"
+                     /label=agrA
+     CDS             complement(1..717)
+                     /codon_start=1
+                     /transl_table=11
+                     /gene="agrA"
+                     /locus_tag="CHPLLPKM_00001"
+                     /product="autoinducer sensor protein response 
+                     regulatorprotein"
+                     /label=agrA
+                     /inference="ab initio prediction:same species:002006"
+                     /inference="similar to AA sequence:same 
+                     species:YP_005745411.1"
+                     /translation="MKIFICEDDPKQRENMVTIIKNYIMIEEKPMEIALATDNPYEVLE
+                     QAKNMNDIGCYFLDIQLSTDINGIKLGSEIRKHDPVGNIIFVTSHSELTYLTFVYKVAA
+                     MDFIFKDDPAELRTRIIDCLETAHTRLQLLSKDNSVETIELKRGSNSVYVQYDDIMFFE
+                     SSTKSHRLIAHLDNRQIEFYGNLKELSQLDDRFFRCHNSFVVNRHNIESIDSKERIVYF
+                     KNKEHCYASVRNVKKI"
+     gene            complement(736..2028)
+                     /locus_tag="CHPLLPKM_00002"
+                     /label=agrC
+     CDS             complement(736..2028)
+                     /codon_start=1
+                     /transl_table=11
+                     /locus_tag="CHPLLPKM_00002"
+                     /product="accessory gene regulator protein C"
+                     /label=agrC
+                     /inference="ab initio prediction:same species:002006"
+                     /inference="similar to AA sequence:same 
+                     species:YP_005740088.1"
+                     /translation="MEALNDYNYVLFVIVQVSLMFFISAFISGIRYKKSDYIYIIGIVL
+                     SSVYFFDKIGSISLVVITIFIIIFLYFKIRLYSVFLVMVTQIILYCANFVYIIIFSYII
+                     TISHSVFIVLPIFLVVYVSISYALAYILNRILKRINGTYLSLNKKFLTVITIVIVITFS
+                     LLFAYSQIDASDASTIKQYSLLFLGIIILLSILIFIYSQFTLKEMKYKRNQEEIETYYE
+                     YTLKIEAINNEMRKFRHDYVNILTTLSEYIREDDMNGLRDYFNKNIVPMKDNLQMNALK
+                     LNGIENLKVREIKGLLTAKILRAQEMNIPISIEIPDEVTRINLNMIDLSRSIGIILDNA
+                     IEASSEIDDPIIRVAFIESENSVTFIVMNKCADDIPRIHELFQESFSTKGEGRGLGLST
+                     LKEIADNADNVLLDTIIENGFFIQKVEIINN"
+     gene            complement(2053..2193)
+                     /gene="agrD"
+                     /locus_tag="CHPLLPKM_00003"
+                     /label=agrD
+     CDS             complement(2053..2193)
+                     /codon_start=1
+                     /transl_table=11
+                     /gene="agrD"
+                     /locus_tag="CHPLLPKM_00003"
+                     /product="staphylococcal accessory gene regulator proteinD"
+                     /label=agrD
+                     /inference="ab initio prediction:same species:002006"
+                     /inference="similar to AA sequence:same 
+                     species:YP_005740087.1"
+                     /translation="MKKLLNKVIELLVDFFNSIGYRAAYINCDFLLDEAEVPKELTQLH
+                     E"
+     gene            complement(2197..2814)
+                     /gene="agrB"
+                     /locus_tag="CHPLLPKM_00004"
+                     /label=agrB
+     CDS             complement(2197..2814)
+                     /codon_start=1
+                     /transl_table=11
+                     /gene="agrB"
+                     /locus_tag="CHPLLPKM_00004"
+                     /product="accessory gene regulator B"
+                     /label=agrB
+                     /inference="ab initio prediction:same species:002006"
+                     /inference="similar to AA sequence:same 
+                     species:YP_005740086.1"
+                     /translation="MIKDCTKSYNDSEESGVKLNYFDNKIDQFATYLQKRNNLDHIQFL
+                     QVRLGMQVLAKNIGKLIVMYTIAYILNIFIFTLITNISFYLIRRYAHGAHAPSSFWCYI
+                     ESITLFIVLPLLVLHFHINETLMMFLALISVGVVIKYAPAATRKKPIPARLVKQKRYFS
+                     IIISTILFIITLFVKEPYTQFIQLGIIIQAITLLPIYYSKED"
+     misc_RNA        2966..3483
+                     /gene="RNAiii"
+                     /locus_tag="CHPLLPKM_00005"
+                     /product="RNAiii"
+                     /label=RNAiii
+     CDS             3050..3130
+                     /codon_start=1
+                     /transl_table=11
+                     /gene="hld"
+                     /locus_tag="CHPLLPKM_00006"
+                     /product="Delta-toxin"
+                     /label=hld
+                     /translation="MAQDIISTIGDLVKWIIDTVNKFTKK"
+     gene            3050..3130
+                     /gene="hld"
+                     /locus_tag="CHPLLPKM_00006"
+                     /product="Delta-toxin"
+                     /label=hld
+ORIGIN
+        1 ttatattttt ttaacgtttc tcaccgatgc atagcagtgt tctttatttt taaaatagac
+       61 aattcgctct ttcgaatcta tagattcaat gttatggcga ttgacgacaa agctattatg
+      121 acatctaaag aaacgatcat ctaattgact cagttctttt aaattaccat aaaattcaat
+      181 ttgacggtta tctaaatggg caatgagtct gtgagatttt gttgatgatt caaaaaacat
+      241 aatatcatca tattgaacat acactgaatt actgccacgt tttaattcaa tcgtttcaac
+      301 gctattatct ttagacaaca attgtaagcg tgtatgtgca gtttctaaac agtctataat
+      361 tcgagttctt aattcagctg gatcatcttt aaaaataaaa tccatcgctg caactttgta
+      421 gacaaacgtt aaataggtaa gttcgctgtg actcgtaaca aatataatgt taccaactgg
+      481 atcatgctta cgaatttcac tgcctaattt gataccatta atatcagttg aaagttgaat
+      541 atctaaaaag taacagccta tgtcattcat atttttagct tgctcaagca cctcataagg
+      601 attatcagtt gcgagggcaa tttccatagg cttttcttct atcattatat aatttttaat
+      661 aatggtaacc atgttttctc tttgttttgg atcgtcttcg caaatgaaaa ttttcataca
+      721 ttcacatcct tatggctagt tgttaataat ttcaaccttt tgaataaaga aaccattctc
+      781 gataattgta tctaataaga cattgtctgc attatcagca atttctttta aagttgatag
+      841 acctaaacca cgaccttcac ctttagtaga aaaactttct tggaacaatt catgaatacg
+      901 tggtatatca tctgcacatt tattcataac aataaacgtt actgaatttt cgctttcaat
+      961 aaatgcaact cgaatgatag gatcatcaat ttcacttgat gcctctattg cgttatcaag
+     1021 aataatacca atactgcgac ttaaatcgat catattcaaa ttaatgcgag ttacttcatc
+     1081 tggtatttct atactaatcg gtatattcat ttcttgtgca cgtaaaattt tagctgttag
+     1141 aagaccttta atctcacgta ctttaagatt ctcaatacca tttaacttaa gagcattcat
+     1201 ttgtaaatta tctttcatag gtacaatatt tttattgaaa tagtctcgaa gaccgttcat
+     1261 gtcatcttca cgaatgtatt ctgaaagagt cgtcaagata ttgacataat catgacggaa
+     1321 cttgcgcatt tcattattaa ttgcttcaat ctttaatgtg tattcataat aggtttcaat
+     1381 ttcttcttga ttacgtttat atttcatttc tttaagagta aattgagaat aaataaaaat
+     1441 taagatactc agtaatataa taattcccaa gaataaaagc gaatactgtt tgattgttga
+     1501 tgcatcactc gcatcaattt gcgaatatgc aaataacaaa gagaatgtta ttactataac
+     1561 aatagttata acagtaagga attttttatt aagagaaagg tatgtaccat ttattctttt
+     1621 taatattcta tttaaaatgt aggcaagtgc ataagaaatt gatacataca ctaccaaaaa
+     1681 gattggtaga actataaaca cgctgtgtga aattgttata atgtatgaaa aaataatgat
+     1741 ataaacgaaa tttgcacaat ataaaatgat ttgagtaacc attactaaaa atacagaata
+     1801 tagtctaatt ttaaaataga gaaaaattat tataaaaatc gttataacaa ctagtgaaat
+     1861 acttccgatt ttgtcaaaga aatatactga agataacact attccaataa tgtatatata
+     1921 atctgatttt ttgtatctta ttccactaat aaatgcagat ataaagaaca ttaatgaaac
+     1981 ttgaacaatt acaaataaaa cgtaattata atcatttaat gcttccactt actatcacac
+     2041 tttctcttat agttattcgt gtaattgagt taattctttt ggtacttcag cttcgtccaa
+     2101 taaaaaatca caatttatat acgcggctct gtaaccgatg ctgttgaaaa agtcaactaa
+     2161 aagctcaata actttgttga gtaatttttt cataatttag tcctcctttg aatagtatat
+     2221 tggtagtaat gtaatagctt gtataataat acccagttga ataaattggg tatatggttc
+     2281 ttttacaaaa agtgtgataa tgaaaagaat tgtactaatt ataattgaaa aatatctttt
+     2341 ttgctttaca agcctcgctg ggataggctt cttcctagta gctgcaggtg catatttaat
+     2401 cactactcca acacttatta atgctaaaaa catcattagt gtttcattaa tatgaaaatg
+     2461 taatactaat agaggtagca caataaaaag tgtaatgctt tctatataac accaaaaaga
+     2521 tgaaggtgca tgtgcaccat gtgcatacct tctaattaga taaaatgata tattagtaat
+     2581 taaagtgaag ataaaaatgt ttaaaatata ggcaatagta tacataacaa ttaatttacc
+     2641 tatattttta gctaagacct gcatccctaa acgtacttgc aaaaattgaa tatgatctaa
+     2701 gttatttctc ttttgaagat acgtggcaaa ctggtcaatt ttattatcaa aataattcaa
+     2761 ttttacacca ctctcctcac tgtcattata cgatttagta caatctttta tcattatatt
+     2821 gcctaactgt aggaaataaa tacttaactg ttaaatgtaa tttgtattta atattttaac
+     2881 ataaaaaaat ttacagttaa gaataaaaaa cgactagtta agaaaaaatg gaaaataaat
+     2941 gcttttagca tgttttaata taactagatc acagagatgt gatggaaaat agttgatgag
+     3001 ttgtttaatt ttaagaattt ttatcttaat taaggaagga gtgatttcaa tggcacaaga
+     3061 tatcatttca acaatcggtg acttagtaaa atggattatc gacacagtga acaaattcac
+     3121 taaaaaataa gatgaataat taattacttt cattgtaaat ttgttatctt cgtatagtac
+     3181 taaaagtatg agttattaag ccatcccaac ttaataacca tgtaaaatta gcaagtgagt
+     3241 aacatttgct agtagagtta gtttccttgg actcagtgct atgtattttt cttaattatc
+     3301 attacagata attatttcta gcatgtaagc tatcgtaaac aacatcgatt tatcattatt
+     3361 tgataaataa aatttttttc ataattaata acatccccaa aaatagattg aaaaaataac
+     3421 tgtaaaacat tcccttaata ataagtatgg tcgtgagccc ctcccaagct cgcggccttt
+     3481 ttt
+//
