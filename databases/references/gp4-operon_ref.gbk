@@ -33,11 +33,13 @@ FEATURES             Location/Qualifiers
                      SSTKSHRLIAHLDNRQIEFYGNLKELSQLDDRFFRCHNSFVVNRHNIESIDSKERIVYF
                      KNKEHCYASVRNVKKI"
      gene            complement(736..2028)
+                     /gene="agrC"
                      /locus_tag="MFDOEMOM_00002"
                      /label=agrC
      CDS             complement(736..2028)
                      /codon_start=1
                      /transl_table=11
+                     /gene="agrC"
                      /locus_tag="MFDOEMOM_00002"
                      /product="accessory gene regulator protein C"
                      /label=agrC
