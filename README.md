@@ -13,6 +13,8 @@
 * [Snippy](https://github.com/tseemann/snippy)
 	
 * [HMMER](http://hmmer.org/)
+
+* [SeqKit](https://bioinf.shenwei.me/seqkit/)
 	
 * Databases folder for agr group typing and variant calling
 		
