@@ -24,21 +24,41 @@ while getopts ":hv" option; do
 done
 
 #validate input fasta
-if [[ $(file $1 | grep -c "compressed") == 0 ]] #checks if file is compressed
- then	
-	if [[ $(grep -q "^@" $1 ; echo $?) == 1 && $(seqkit seq -t dna -n --quiet $1 | wc -l) -ge 1 ]] # if file is NOT fastq and checks if seqkit can parse the file 
+
+if [ -z "$1" ]
+then
+	echo -e "No input file given\n$USAGE"
+	exit
+else
+	if [ -f "$1" ] #Check if input is a file
 	 then
-		bname=$(basename $1)
-		fna_name=$(echo "$bname" | cut -f1 -d".")
+		if [[ $(file $1 | grep -c "compressed") == 0 ]] #checks if file is compressed
+		 then	
+			if [[ $(grep -q "^@" $1 ; echo $?) == 1 && $(seqkit seq -t dna -n --quiet $1 | wc -l) -ge 1 ]] # if file is NOT fastq and checks if seqkit can parse the file 
+			 then	
+				if [[ $(grep -v ">" $1 | grep -q "[^ATCGN]"; echo $?) == 1 ]] #check if seqence has characters other than ATGCN
+				 then
+					bname=$(basename $1)
+					fna_name=$(echo "$bname" | cut -f1 -d".")
+				else
+					echo -e "Seqence has non-standard nucleic acid characters\n$USAGE"
+					exit
+				fi
+			else
+				echo -e "Invalid input\n$USAGE"
+				exit
+			fi
+		else
+			echo -e "Compressed input not supported (for now)\n$USAGE"
+			exit
+		fi	
 	else
 		echo -e "Invalid input\n$USAGE"
 		exit
-	fi	
-else
-	echo -e "Compressed input not supported (for now)\n$USAGE"
-	exit
-fi	
- 
+	fi
+fi
+
+
 #assume current directory if path to database not specified. 
 if [ -z "$2" ]
 then
