@@ -12,11 +12,11 @@ while getopts ":hv" option; do
 		h) #Print usage if option -h is given
 		echo -e "$USAGE"
 		exit;;
-	
+
 		v) #Print version number if option -v is given
 		echo -e "version 1.0"
 		exit;;
-	
+
 		\?) #Exit if invalid option
 		echo -e "Unknown option\n$USAGE"
 		exit;;
@@ -61,10 +61,17 @@ fi
 
 #assume current directory if path to database not specified. 
 if [ -z "$2" ]
-then
-	databases_path="./databases"
+ then
+	script_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )
+	databases_path="$script_dir/databases/"
 else
 	databases_path=$2
+fi
+
+if [[ ! -e $databases_path ]]
+ then
+	echo $databases_path 'does not exist' 
+	exit
 fi
 
 #check if results directory already exists
@@ -75,7 +82,6 @@ then
 else	
 	mkdir $fna_name-results
 fi
-
 
 
 ################################
