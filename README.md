@@ -3,10 +3,34 @@
 ###### bash script for detecting S. aureus agr group from genome assembly and calling variants in agr operon using group-specific reference
 
 
-### PREREQUISITES:
-* [Usearch 32 bit linux](https://drive5.com/usearch/)
+### INSTALLATION:
+* To download the bash script and database files	
+
+	```git clone "https://github.com/VishnuRaghuram94/agr_fs_detection.git"```
+	
+* To download prerequisites
+
+	```
+	conda create -n agr_fs -c bioconda blast snippy hmmer seqkit
+	
+	conda activate agr_fs
+	```
 
 	*Due to Usearch's license, it cannot be provided with the conda installation. Please download and extract usearch11.0.667 from [here](https://www.drive5.com/downloads/usearch11.0.667_i86linux32.gz) and add it to your PATH*
+	
+	For example:
+	
+	```
+	wget "https://www.drive5.com/downloads/usearch11.0.667_i86linux32.gz"
+	
+	gunzip usearch11.0.667_i86linux32.gz
+	
+	cp ./usearch11.0.667_i86linux32 /usr/bin
+	```
+	
+	
+### PREREQUISITES:
+* [Usearch 32 bit linux](https://drive5.com/usearch/)
 	
 * [NCBI blast+](https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/)
 	
@@ -40,7 +64,7 @@
 	agr_fs_detect.sh <fasta_file> <path_to_databases> [-hv]
 	
 	* <fasta_file> : S. aureus genome assembly in fasta format. 
-	* <path_to_databases>  : Absolute path to database files. Default " ./databases "
+	* <path_to_databases>  : Absolute path to database files. Will choose same directory as script if empty. 
 	* -h to print this help message
 	* -v to print version
 &nbsp;
