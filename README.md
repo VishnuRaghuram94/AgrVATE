@@ -6,7 +6,7 @@
 
 # WORKFLOW:
 
-![AgrVATE Workflow](agrvate_worlflow.png)
+![AgrVATE Workflow](https://github.com/VishnuRaghuram94/agr_fs_detection/blob/main/agrvate_workflow.png)
 
 AgrVATE accepts a *S. aureus* genome assembly as input and performs a kmer search using an Agr-group specific kmer database to assign the Agr-group. The *agr* operon is then extracted using *in-silico* PCR and variants are called using an Agr-group specific reference operon. 
 
