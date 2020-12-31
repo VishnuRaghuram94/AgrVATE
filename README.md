@@ -54,10 +54,10 @@ Shen W, Le S, Li Y, Hu F (2016) SeqKit: A Cross-Platform and Ultrafast Toolkit f
 	
 * Databases folder for agr group typing and variant calling  
 	* __[DREME](http://meme-suite.org/doc/dreme.html)__  
-	***DREME is not included with AgrVATE but it was used to build the kmer database for Agr-group typing (```gp1234_motifs_all.fasta```)***  
+	***DREME is not required for AgrVATE but it was used to build the kmer database for Agr-group typing*** (```gp1234_motifs_all.fasta```)    
 	Timothy L. Bailey, DREME: motif discovery in transcription factor ChIP-seq data, Bioinformatics, Volume 27, Issue 12, 15 June 2011, Pages 1653–1659, https://doi.org/10.1093/bioinformatics/btr261
 	```
-	databases/
+	agrvate_databases/
 		├── agrD_hmm.hmm
 		├── agrD_hmm.hmm.h3f
 		├── agrD_hmm.hmm.h3i
@@ -76,15 +76,16 @@ Shen W, Le S, Li Y, Hu F (2016) SeqKit: A Cross-Platform and Ultrafast Toolkit f
 
 # USAGE:
 
-	agr_fs_detect.sh <fasta_file> [-hv]
+	agrvate <fasta_file>
 	
-* <fasta_file> : S. aureus genome assembly in fasta format. 
-* -h to print help message
-* -v to print version
+* ```<fasta_file>``` : S. aureus genome assembly in fasta format. 
+* FLAGS:  
+	* ```-h```&nbsp;&nbsp;&nbsp;Print help message
+	* ```-v```&nbsp;&nbsp;&nbsp;Print version
 * If the tool was installed through Conda, you do not have to specify the path to the databases folder. However, if you wish to manually specify the path, it can be entered such as:  
 
 	```
-	agr_fs_detect.sh <fasta_file> <path_to_databases>
+	agrvate <fasta_file> <path/to/agrvate_databases>
 	```	
 	
 ---
