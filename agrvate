@@ -3,25 +3,38 @@
 #Vishnu Raghuram 2020-11-12
 #bash script for extracting intact agr operons from S. aureus and identifying frameshift mutations using agr-group specific references 
 
+version="1.0"
+USAGE=$(echo -e "\n\
+AgrVATE: Agr Variant Assessment & Typing Engine \n\n\
+VERSION: agrvate v$version \n\n\
+USAGE:   \
+agrvate <fasta file> \n         \
+<fasta_file> <path/to/agrvate_databases> #Not required if installed using Conda \n\n\
+FLAGS: \n\
+  -h     Print this help message \n\
+  -v     Print version \n\n\
+SOURCE:  https://github.com/VishnuRaghuram94/AgrVATE \n\n\
+")
 
-USAGE=$(echo -e "USAGE: agr_fs_detect.sh <fasta file> <path to databases>\nCheck README file for prerequsites\nagr_fs_detect.sh -h #to print this help message\nagr_fs_detect.sh -v #to print version\n")
 
-#Help and version options
+
+#help and version options
 while getopts ":hv" option; do
 	case $option in 
 		h) #Print usage if option -h is given
 		echo -e "$USAGE"
 		exit;;
-
+	
 		v) #Print version number if option -v is given
-		echo -e "version 1.0"
+		echo -e "agrvate  v$version"
 		exit;;
-
+		
 		\?) #Exit if invalid option
 		echo -e "Unknown option\n$USAGE"
 		exit;;
 	esac
 done
+
 
 #validate input fasta
 
@@ -63,7 +76,7 @@ fi
 if [ -z "$2" ]
  then
 	script_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )
-	databases_path="$script_dir/databases/"
+	databases_path="$script_dir/agrvate_databases/"
 else
 	databases_path=$2
 fi
