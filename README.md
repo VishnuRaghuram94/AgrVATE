@@ -30,7 +30,9 @@ For example:
 	
 	gunzip usearch11.0.667_i86linux32.gz
 	
-	cp ./usearch11.0.667_i86linux32 /usr/bin
+	chmod 755 usearch11.0.667_i86linux32
+	
+	cp ./usearch11.0.667_i86linux32 $(dirname "$(which agrvate)")
 	
 
 ---
@@ -76,17 +78,20 @@ Shen W, Le S, Li Y, Hu F (2016) SeqKit: A Cross-Platform and Ultrafast Toolkit f
 
 # USAGE:
 
-	agrvate <fasta_file>
+	agrvate -i filename.fasta [options]
 	
-* ```<fasta_file>``` : S. aureus genome assembly in fasta format. 
 * FLAGS:  
-	* ```-h```&nbsp;&nbsp;&nbsp;Print help message
-	* ```-v```&nbsp;&nbsp;&nbsp;Print version
-* If the tool was installed through Conda, you do not have to specify the path to the databases folder. However, if you wish to manually specify the path, it can be entered such as:  
+	* ```-i```&nbsp;&nbsp;&nbsp;Input S. aureus genome in FASTA format [alternate: ```--input```]
+	* ```-t```&nbsp;&nbsp;&nbsp;Does agr typing only (skips agr operon extraction and frameshift detection) [alternate: ```--typing-only```]
+	* ```-f```&nbsp;&nbsp;&nbsp;Force overwrite existing results directory [alternate: ```--force```]
+	* ```-d```&nbsp;&nbsp;&nbsp;Path to agrvate_databases (Not required if installed using Conda) [alternate: ```--databases```]
+	* ```-h```&nbsp;&nbsp;&nbsp;Print this help message and exit [alternate: ```--help```]
+	* ```-v```&nbsp;&nbsp;&nbsp;Print version and exit [alternate: ```--version```]
 
-	```
-	agrvate <fasta_file> <path/to/agrvate_databases>
-	```	
+*AgrVATE supports a single FASTA file as input, but the file can be a multi-fasta file. To run multiple *S. aureus* genomes, it is recommended to keep them as separate files in a common directory.*  
+*For example*:
+
+	ls fasta_files/* | xargs -I {} agrvate -i {} [options]
 	
 ---
 
@@ -94,7 +99,7 @@ Shen W, Le S, Li Y, Hu F (2016) SeqKit: A Cross-Platform and Ultrafast Toolkit f
 
 A new directory with suffix -results  will be created
 
-***NOTE:*** **There are 15 possible kmers for each agr group. The analyses will continue even if only one kmer matches a given agr-group but it should be noted that < 5 kmers matching leads to a low confidence agr-group call. Please check fasta-agr_gp.tab for the number of kmers matched.** 
+***NOTE:*** **There are 15 possible kmers for each agr group per genome. The analyses will continue even if only one kmer matches a given agr-group but it should be noted that < 5 kmers matching leads to a low confidence agr-group call. Please check fasta-agr_gp.tab for the number of kmers matched.** 
 
 * __**fasta-summary.tab:**__  
 
@@ -107,7 +112,7 @@ A new directory with suffix -results  will be created
 		
 	*If multiple assemblies are run, use this command from parent directory to output a consolidated summary table for all samples*
 	
-		cat ./*-results/*-summary.tab > filename.tab
+		awk 'FNR==1 && NR!=1 { while (/^#/) getline; } 1 {print}' ./*-results/*-summary.tab > filename.tab
 		
 * __**fasta-agr_gp.tab:**__  
 
