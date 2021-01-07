@@ -3,106 +3,179 @@
 #Vishnu Raghuram 2020-11-12
 #bash script for extracting intact agr operons from S. aureus and identifying frameshift mutations using agr-group specific references 
 
+
+
 version="1.0"
 USAGE=$(echo -e "\n\
 AgrVATE: Agr Variant Assessment & Typing Engine \n\n\
 VERSION: agrvate v$version \n\n\
 USAGE:   \
-agrvate <fasta file> \n         \
-<fasta_file> <path/to/agrvate_databases> #Not required if installed using Conda \n\n\
+agrvate [options] -i filename.fasta \n\n\
 FLAGS: \n\
-  -h     Print this help message \n\
-  -v     Print version \n\n\
-SOURCE:  https://github.com/VishnuRaghuram94/AgrVATE \n\n\
+  -i | --input           Input S. aureus genome in FASTA format\n\
+  -t | --typing-only     Does agr typing only (skips agr operon extraction and frameshift detection)\n\
+  -f | --force           Force overwrite existing results directory\n\
+  -d | --databases       Path to agrvate_databases (Not required if installed using Conda)\n\
+  -h | --help            Print this help message and exit\n\
+  -v | --version         Print version and exit\n\n\
+SOURCE:  https://github.com/VishnuRaghuram94/AgrVATE\n\n\
 ")
 
+force=0
+typing_only=0
+script_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )
+databases_path="$script_dir/agrvate_databases/"
 
-
-#help and version options
-while getopts ":hv" option; do
-	case $option in 
-		h) #Print usage if option -h is given
-		echo -e "$USAGE"
-		exit;;
-	
-		v) #Print version number if option -v is given
-		echo -e "agrvate  v$version"
-		exit;;
-		
-		\?) #Exit if invalid option
-		echo -e "Unknown option\n$USAGE"
-		exit;;
+while :; do
+	case $1 in
+		-h|-\?|--help) #Print usage and exit
+			echo -e "$USAGE"
+			shift
+			exit
+			;;
+			
+		-i|--input) #Save input with specified path to $fasta_path
+			if [[ $2 && $2 != -* ]]
+			 then
+				fasta_path=$2
+				echo -e "Processing $fasta_path ..."
+				shift
+			else
+				1>&2 echo -e " -i requires an argument.\n$USAGE "
+				exit 1
+			fi
+			;;
+			
+		-d|--databases)
+			if [[ $2 && $2 != -* ]]
+			 then
+				databases_path=$2
+				shift
+			else
+				databases_path="$script_dir/agrvate_databases/"
+				shift
+			fi
+			;;
+			
+		-f|--force)
+			force=$((force + 1))
+			shift
+			continue
+			;;
+			
+		-t|--typing-only)
+			typing_only=$((typing_only + 1))
+			shift
+			continue
+			;;
+			
+		-v|--version)
+			echo -e "agrvate v$version"
+			shift
+			exit
+			;;
+		--)
+			shift
+			break
+			;;
+		-?*)
+			1>&2 echo -e " $1 is an invalid option. \n$USAGE "
+			shift
+			exit 1
+			;;
+		*)
+			shift
+			break
 	esac
+	shift
 done
 
+# Printing variables
+# echo -e "variables"
+# echo -e "$fasta_path = fasta_path"
+# echo -e "$databases_path = databases_path"
+# echo -e "$typing_only = typing_only"
+# echo -e "$force = force"
 
-#validate input fasta
+###########################
+#### INPUT VALIDATIONS ####
+###########################
 
-if [ -z "$1" ]
-then
-	echo -e "No input file given\n$USAGE"
-	exit
-else
-	if [ -f "$1" ] #Check if input is a file
-	 then
-		if [[ $(file $1 | grep -c "compressed") == 0 ]] #checks if file is compressed
+
+# validate input fasta
+if [[ -f $fasta_path ]] #Check if input is a file
+ then
+	if [[ $(file $fasta_path | grep -c "compressed") == 0 ]] #checks if file is compressed
+	 then	
+		if [[ $(grep -q "^@" $fasta_path ; echo $?) == 1 && $(seqkit seq -t dna -n --quiet $fasta_path | wc -l) -ge 1 ]] # if file is NOT fastq and checks if seqkit can parse the file 
 		 then	
-			if [[ $(grep -q "^@" $1 ; echo $?) == 1 && $(seqkit seq -t dna -n --quiet $1 | wc -l) -ge 1 ]] # if file is NOT fastq and checks if seqkit can parse the file 
-			 then	
-				if [[ $(grep -v ">" $1 | grep -q "[^ATCGN]"; echo $?) == 1 ]] #check if seqence has characters other than ATGCN
-				 then
-					bname=$(basename $1)
-					fna_name=$(echo "$bname" | cut -f1 -d".")
-				else
-					echo -e "Seqence has non-standard nucleic acid characters\n$USAGE"
-					exit
-				fi
+			if [[ $(grep -v ">" $fasta_path | grep -q "[^ATCGN]"; echo $?) == 1 ]] #check if seqence has characters other than ATGCN
+			 then
+				bname=$(basename $fasta_path)
+				fna_name=$(echo "$bname" | cut -f1 -d".")
 			else
-				echo -e "Invalid input\n$USAGE"
-				exit
+				1>&2 echo -e "Seqence has non-standard nucleic acid characters\n$USAGE" 
+				exit 1 
 			fi
 		else
-			echo -e "Compressed input not supported (for now)\n$USAGE"
-			exit
-		fi	
+			1>&2 echo -e "Input file not in FASTA format\n$USAGE"
+			exit 1
+		fi
 	else
-		echo -e "Invalid input\n$USAGE"
-		exit
-	fi
-fi
-
-
-#assume current directory if path to database not specified. 
-if [ -z "$2" ]
- then
-	script_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )
-	databases_path="$script_dir/agrvate_databases/"
+		1>&2 echo -e "Compressed input not supported (for now)\n$USAGE"
+		exit 1
+	fi	
 else
-	databases_path=$2
+	1>&2 echo -e "Invalid input\n$USAGE"
+	exit 1
 fi
 
-if [[ ! -e $databases_path ]]
- then
-	echo $databases_path 'does not exist' 
-	exit
+
+#Databases folder checks
+if [[ -e $databases_path ]]
+ then #Check if all necessary files are present
+	if [[ \
+	$(find $databases_path -name gp1234_all_motifs.fna | wc -l) == 1 && \
+	$(find $databases_path -name agr_operon_primers.fa | wc -l) == 1 && \
+	$(find $databases_path -name agrD_hmm.hmm* | wc -l) == 5 && \
+	$(find $databases_path/references -name gp[1234]-operon_ref.gbk | wc -l) == 4 ]]
+	 then
+		echo -e "$databases_path is valid"
+	else
+		1>&2 echo -e "$databases_path is not a valid databases directory.\nPlease download the agrvate_databases folder from https://github.com/VishnuRaghuram94/AgrVATE/"
+		exit 1
+	fi	
+else
+	1>&2 echo $databases_path ' - provided database path does not exist' 
+	exit 1
+	
 fi
 
 #check if results directory already exists
 if [[ -d $fna_name-results ]]
 then
-	echo "Results directory already exists, cannot overwrite"
-	exit
+	if [[ $force > 0 ]]
+	 then
+		echo "Results directory already exists, -f specified, overwriting..."
+		rm -rf $fna_name-results
+		mkdir $fna_name-results
+	else	
+		1>&2 echo "Results directory already exists, cannot overwrite. Use option -f to force overwrite"
+		exit 1
+	fi	
 else	
 	mkdir $fna_name-results
 fi
 
+#create summary file
+echo -e "#filename\tagr_group\tmatch_score\tcanonical_agrD\tmultiple_agr\tframeshifts" >> $fna_name-results/$fna_name-summary.tab
 
 ################################
 #### AGR TYPING KMER SEARCH ####
 ################################
 
 #fna file searched against agr typing kmers using blastn and write output to agrgp_tab
-blastn -query $databases_path/gp1234_all_motifs.fna -subject $1 -outfmt "6 sseqid qseqid evalue pident sstart send" -max_hsps 1 -perc_identity 100 -qcov_hsp_perc 100 -out $fna_name-results/$fna_name-agr_gp.tab &>$fna_name-results/$fna_name-blastn_log.txt
+blastn -query $databases_path/gp1234_all_motifs.fna -subject $fasta_path -outfmt "6 sseqid qseqid evalue pident sstart send" -max_hsps 1 -perc_identity 100 -qcov_hsp_perc 100 -out $fna_name-results/$fna_name-agr_gp.tab &>$fna_name-results/$fna_name-blastn_log.txt
 
 #identify agr group from search_oligodb results
 
@@ -127,7 +200,7 @@ if [[ $(cat $fna_name-results/$fna_name-agr_gp.tab | cut -f2 | sort | uniq | cut
 		canonical="u"
 		fs="u"
 		#summary file
-		echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" > $fna_name-results/$fna_name-summary.tab
+		echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" >> $fna_name-results/$fna_name-summary.tab
 		exit
 	fi	
 else #single agr group
@@ -164,7 +237,7 @@ fi
 if [[ $agrD_nhmmer == 1 ]]
  then
 	#use nhmmer to search for sequence matching canonical S. aureus agrD
-	nhmmer --noali --tblout $fna_name-results/$fna_name-hmm.tab -E 0.01 $databases_path/agrD_hmm.hmm $1 > $fna_name-results/$fna_name-hmm-log.txt
+	nhmmer --noali --tblout $fna_name-results/$fna_name-hmm.tab -E 0.01 $databases_path/agrD_hmm.hmm $fasta_path > $fna_name-results/$fna_name-hmm-log.txt
 
 	#Check if hmmer hit ~120bp long. if yes - possible non-canonical agrD. 
 	if [[ -z $(grep -v "#" $fna_name-results/$fna_name-hmm.tab | sed 's/\s\+/\t/g' | awk 'BEGIN{FS=OFS="\t"};{if($6-$5 > 120) print $0};') ]]
@@ -177,9 +250,13 @@ if [[ $agrD_nhmmer == 1 ]]
 	fi	
 fi
 
-
-#summary file
-#echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple" > $fna_name-results/$fna_name-summary.tab
+#Check if --typing-only is enabled
+if [[ $typing_only > 0 ]]
+ then
+	fs="u"
+	echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" >> $fna_name-results/$fna_name-summary.tab
+	exit
+fi	
 
 #################################
 ##### EXTRACTING AGR OPERON #####
@@ -192,16 +269,18 @@ if [[ -x $path_to_usearch ]]
  then
     echo -e "usearch found"
 else
-	echo -e "usearch11.0.667_i86linux32 not in path, cannot perform frameshift detection\n please download usearch11.0.667_i86linux32 from https://www.drive5.com/usearch/download.html"
+	1>&2 echo -e "usearch11.0.667_i86linux32 not in path, cannot perform frameshift detection\n please download usearch11.0.667_i86linux32 from https://www.drive5.com/usearch/download.html"
+	1>&2 echo -e "For example:\n\twget 'https://www.drive5.com/downloads/usearch11.0.667_i86linux32.gz'\n\tgunzip usearch11.0.667_i86linux32.gz\n\tchmod 755 usearch11.0.667_i86linux32\n\tcp ./usearch11.0.667_i86linux32 $script_dir/" 
+	1>&2 echo -e "Otherwise, use flag -t to skip frameshift detection"
 	fs="u"
 	#summary file
-	echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" > $fna_name-results/$fna_name-summary.tab
-	exit
+	echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" >> $fna_name-results/$fna_name-summary.tab
+	exit 1
 fi
 
 
 #In-silico PCR using predefined primers(agr_operon_primers.fa) to extract agr operon
-usearch11.0.667_i86linux32 -search_pcr $1 -db $databases_path/agr_operon_primers.fa -strand both -maxdiffs 8 -minamp 3000 -maxamp 5000 -ampout $fna_name-results/$fna_name-agr_operon.fna &>$fna_name-results/$fna_name-pcr-log.txt
+usearch11.0.667_i86linux32 -search_pcr $fasta_path -db $databases_path/agr_operon_primers.fa -strand both -maxdiffs 8 -minamp 3000 -maxamp 5000 -ampout $fna_name-results/$fna_name-agr_operon.fna &>$fna_name-results/$fna_name-pcr-log.txt
 
 #Check if agr operon file is empty
 if [[ -s $fna_name-results/$fna_name-agr_operon.fna ]] 
@@ -211,7 +290,7 @@ else
 	echo -e "Unable to find agr operon, check $fna_name-results/$fna_name-pcr-log.txt"
 	fs="u"
 	#summary file
-	echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" > $fna_name-results/$fna_name-summary.tab
+	echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" >> $fna_name-results/$fna_name-summary.tab
 	exit	
 fi
 
@@ -220,7 +299,7 @@ then
 	echo -e "Unable to determine agr group, cannot perform frameshift detection"
 	fs="u"
 	#summary file
-	echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" > $fna_name-results/$fna_name-summary.tab
+	echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" >> $fna_name-results/$fna_name-summary.tab
 	exit
 fi
 
@@ -239,16 +318,19 @@ else
 	echo -e "Snippy unsuccessful, check $fna_name-results/$fna_name-snippy-log.txt"
 	fs="u"
 	#summary file
-	echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" > $fna_name-results/$fna_name-summary.tab
+	echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" >> $fna_name-results/$fna_name-summary.tab
 	exit	
 fi
 
 #Filtering out frameshifts in coding regions from snippy data
-awk -v i="$fna_name" 'BEGIN{FS=OFS="\t"};{if($7=="CDS") print i,$2,$3,$11,$13}' $fna_name-results/$fna_name-snippy/snps.tab | sed 's/ /\t/g' | grep -E -v 'missense_variant' | grep -E -v 'synonymous_variant' > $fna_name-results/$fna_name-agr_operon_frameshifts.tab
+
+echo -e "#filename\tposition\ttype\teffect\tgene" > $fna_name-results/$fna_name-agr_operon_frameshifts.tab
+
+awk -v i="$fna_name" 'BEGIN{FS=OFS="\t"};{if($7=="CDS") print i,$2,$3,$11,$13}' $fna_name-results/$fna_name-snippy/snps.tab | sed 's/ /\t/g' | grep -E -v 'missense_variant' | grep -E -v 'synonymous_variant' >> $fna_name-results/$fna_name-agr_operon_frameshifts.tab
 
 fs=$(cat $fna_name-results/$fna_name-agr_operon_frameshifts.tab | wc -l)
 #summary file
-echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" > $fna_name-results/$fna_name-summary.tab
+echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" >> $fna_name-results/$fna_name-summary.tab
 
 
 #Check if frameshifts file is empty
