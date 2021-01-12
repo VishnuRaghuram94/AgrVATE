@@ -109,7 +109,7 @@ if [[ -f $fasta_path ]] #Check if input is a file
 	 then	
 		if [[ $(grep -q "^@" $fasta_path ; echo $?) == 1 && $(seqkit seq -t dna -n --quiet $fasta_path | wc -l) -ge 1 ]] # if file is NOT fastq and checks if seqkit can parse the file 
 		 then	
-			if [[ $(grep -v ">" $fasta_path | grep -q "[^ATCGN]"; echo $?) == 1 ]] #check if seqence has characters other than ATGCN
+			if [[ $(grep -v ">" $fasta_path | grep -q -i "[^ATCGN]"; echo $?) == 1 ]] #check if seqence has characters other than ATGCN
 			 then
 				bname=$(basename $fasta_path)
 				fna_name=$(echo "$bname" | cut -f1 -d".")
