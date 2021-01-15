@@ -97,9 +97,11 @@ Shen W, Le S, Li Y, Hu F (2016) SeqKit: A Cross-Platform and Ultrafast Toolkit f
 
 # OUTPUTS:
 
-A new directory with suffix -results  will be created
+### RESULTS: 
+		
+A new directory with suffix ```-results```  will be created where all the following files can be found
 
-***NOTE:*** **There are 15 possible kmers for each agr group per genome. The analyses will continue even if only one kmer matches a given agr-group but it should be noted that < 5 kmers matching leads to a low confidence agr-group call. Please check fasta-agr_gp.tab for the number of kmers matched.** 
+***NOTE:*** **There are 15 possible kmers for each agr group per genome. The analyses will continue even if only one kmer matches a given agr-group but it should be noted that < 5 kmers matching leads to a low confidence agr-group call. Col 3 in ```fasta-summary.tab``` shows the number of kmers matched** 
 
 * __**fasta-summary.tab:**__  
 
@@ -154,7 +156,32 @@ A new directory with suffix -results  will be created
 		
 * __**fasta-snippy/**__  
 	All output files of [Snippy](https://github.com/tseemann/snippy)
+
+### TROUBLESHOOTING	
+
+An error report summary file with suffix ```-error-report.tab``` will be created in the working directory.  
+
+**The error report file does not contain any results. It merely shows which steps of the process pipeline ran (```pass```) and which steps did not (```fail```).**   
+
+* ```pass``` Does not necessarily mean a result was obtained, it only means the step completed successfully. 
+* ```fail``` Does not necessarily mean there was an error, it only means that step was not performed. However, possible causes of error for each column are mentioned below.
+ 
+The columns are ordered by how the processes are carried out. i.e col 1 is the first step and col 7 is the last. If one column shows ```fail``` it means the programme exited at that step and therefore the remaining columns will also show ```fail``` . 
+
+* __**error-report.tab:**__  
+
+		col 1: Input name - the argument supplied to the -i flag
+		col 2: Input check - If fail, the input did not pass the valid fasta file criteria
+		col 3: Databases check - If fail, the databases folder or the path to the databases was not valid. 
+		col 4: Outdir check - If fail, the results directory already exists and couldn't be overwritten. Use flag -f or --force. 
+		col 5: Agr typing - If fail, the Agr typing kmer search could not be performed. Check if blastn is installed correctly. 
+		col 6: Usearch check - If fail, in-silico PCR was not performed by usearch. Check if usearch is installed correctly. 
+		col 7: Snippy check - If fail, agr operon frameshift detection was not performed. Check if snippy is installed correctly.
+
+	*If multiple assemblies are run, use this command from parent directory to output a consolidated report table for all samples*
 	
+		awk 'FNR==1 && NR!=1 { while (/^#/) getline; } 1 {print}' ./*-error-report.tab > filename.tab
+
 # Author 
 
 * Vishnu Raghuram
