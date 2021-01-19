@@ -5,7 +5,7 @@
 
 
 
-version="1.0"
+version="0.5.5"
 USAGE=$(echo -e "\n\
 AgrVATE: Agr Variant Assessment & Typing Engine \n\n\
 VERSION: agrvate v$version \n\n\
@@ -119,11 +119,11 @@ echo -e "#input_name\tinput_check\tdatabases_check\toutdir_check\tagr_typing\tus
 # validate input fasta
 if [[ -f $fasta_path ]] #Check if input is a file
  then
-	if [[ $(file $fasta_path | grep -c "compressed") == 0 ]] #checks if file is compressed
+	if [[ $(file $fasta_path | grep -c "compressed") -eq 0 ]] #checks if file is compressed
 	 then	
-		if [[ $(grep -q "^@" $fasta_path ; echo $?) == 1 && $(seqkit seq -t dna -n --quiet $fasta_path | wc -l) -ge 1 ]] # if file is NOT fastq and checks if seqkit can parse the file 
+		if [[ $(grep -q "^@" $fasta_path ; echo $?) -eq 1 && $(seqkit seq -t dna -n --quiet $fasta_path | wc -l) -ge 1 ]] # if file is NOT fastq and checks if seqkit can parse the file 
 		 then	
-			if [[ $(grep -v ">" $fasta_path | grep -q -i "[^ATCGNWSMKRY]"; echo $?) == 1 ]] #check if seqence has characters other than ATGCN
+			if [[ $(grep -v ">" $fasta_path | grep -q -i "[^ATCGNWSMKRY]"; echo $?) -eq 1 ]] #check if seqence has characters other than ATGCN
 			 then
 				fna_name=$(echo "$bname" | cut -f1 -d".")
 				input_check="pass"
@@ -157,10 +157,10 @@ fi
 if [[ -e $databases_path ]]
  then #Check if all necessary files are present
 	if [[ \
-	$(find $databases_path -name gp1234_all_motifs.fna | wc -l) == 1 && \
-	$(find $databases_path -name agr_operon_primers.fa | wc -l) == 1 && \
-	$(find $databases_path -name agrD_hmm.hmm* | wc -l) == 5 && \
-	$(find $databases_path/references -name gp[1234]-operon_ref.gbk | wc -l) == 4 ]]
+	$(find $databases_path -name gp1234_all_motifs.fna | wc -l) -eq 1 && \
+	$(find $databases_path -name agr_operon_primers.fa | wc -l) -eq 1 && \
+	$(find $databases_path -name agrD_hmm.hmm* | wc -l) -eq 5 && \
+	$(find $databases_path/references -name gp[1234]-operon_ref.gbk | wc -l) -eq 4 ]]
 	 then
 		echo -e "$databases_path is valid"
 		databases_check="pass"
@@ -186,6 +186,7 @@ then
 		echo "Results directory already exists, -f specified, overwriting..."
 		rm -rf $fna_name-results
 		mkdir $fna_name-results
+		outdir_check="pass"
 	else	
 		1>&2 echo "Results directory already exists, cannot overwrite. Use option -f to force overwrite"
 		#Error report file
@@ -242,7 +243,7 @@ if [[ -f $fna_name-results/$fna_name-agr_gp.tab ]]
 		
 		agr_match=$(cat $fna_name-results/$fna_name-agr_gp.tab | wc -l)
 		#Check match score. if 0 then unknown type. if less than 4 then low confidence type. In both cases hmm search for agrD will be done.	
-		if [[ $agr_match == 0 ]]
+		if [[ $agr_match -eq 0 ]]
 		 then
 			echo -e "Unable to agr type"
 			multiple="u"
@@ -274,7 +275,7 @@ fi
 #### NOVEL agrD SEARCH ####
 ###########################
 
-if [[ $agrD_nhmmer == 1 ]]
+if [[ $agrD_nhmmer -eq 1 ]]
  then
 	#use nhmmer to search for sequence matching canonical S. aureus agrD
 	nhmmer --noali --tblout $fna_name-results/$fna_name-hmm.tab -E 0.01 $databases_path/agrD_hmm.hmm $fasta_path > $fna_name-results/$fna_name-hmm-log.txt
@@ -305,13 +306,30 @@ fi
 ##### EXTRACTING AGR OPERON #####
 #################################
 
-#Check if usearch11.0.667_i86linux32 binary is in PATH
-path_to_usearch=$(which usearch11.0.667_i86linux32)
+#Get operating system
+if [[ $OSTYPE == *[lL]inux* ]]
+ then
+	usearch_bin=usearch11.0.667_i86linux32
+elif [[ $OSTYPE == *[dD]arwin* ]]
+ then
+	usearch_bin=usearch11.0.667_i86osx32
+else
+	1>&2 echo -e "Error running usearch, unable to determine usearch version. Use flag -t to skip frameshift detection"
+	fs="u"
+	#summary file
+	echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" >> $fna_name-results/$fna_name-summary.tab
+	#Error report file
+	echo -e "$bname\t$input_check\t$databases_check\t$outdir_check\t$agr_typing\t$usearch_check\t$snippy_check" >> $bname-error-report.tab
+	exit 1
+fi	
+
+#Check if usearch11.0.667 binary is in PATH
+path_to_usearch=$(which $usearch_bin)
 
 if [[ -x $path_to_usearch ]]
  then
 	#Check usearch exit status
-	if [[ $(usearch11.0.667_i86linux32 &> /dev/null; echo $?) > 0 ]]
+	if [[ $($usearch_bin &> /dev/null; echo $?) > 0 ]]
 	 then
 		1>&2 echo -e "Error running usearch, please make sure usearch is installed correctly. Otherwise, use flag -t to skip frameshift detection"
 		fs="u"
@@ -325,8 +343,8 @@ if [[ -x $path_to_usearch ]]
 		usearch_check="pass"
 	fi
 else
-	1>&2 echo -e "usearch11.0.667_i86linux32 not in path, cannot perform frameshift detection\n please download usearch11.0.667_i86linux32 from https://www.drive5.com/usearch/download.html"
-	1>&2 echo -e "For example:\n\twget 'https://www.drive5.com/downloads/usearch11.0.667_i86linux32.gz'\n\tgunzip usearch11.0.667_i86linux32.gz\n\tchmod 755 usearch11.0.667_i86linux32\n\tcp ./usearch11.0.667_i86linux32 $script_dir/" 
+	1>&2 echo -e "$usearch_bin not in path, cannot perform frameshift detection\n please download usearch11.0.667 from https://www.drive5.com/usearch/download.html"
+	1>&2 echo -e "For example:\n\tcurl 'https://www.drive5.com/downloads/$usearch_bin.gz' --output $usearch_bin.gz\n\tgunzip $usearch_bin.gz\n\tchmod 755 $usearch_bin\n\tcp ./$usearch_bin $script_dir/" 
 	1>&2 echo -e "Otherwise, use flag -t to skip frameshift detection"
 	fs="u"
 	#summary file
@@ -338,7 +356,7 @@ fi
 
 
 #In-silico PCR using predefined primers(agr_operon_primers.fa) to extract agr operon
-usearch11.0.667_i86linux32 -search_pcr $fasta_path -db $databases_path/agr_operon_primers.fa -strand both -maxdiffs 8 -minamp 3000 -maxamp 5000 -ampout $fna_name-results/$fna_name-agr_operon.fna &>$fna_name-results/$fna_name-pcr-log.txt
+$usearch_bin -search_pcr $fasta_path -db $databases_path/agr_operon_primers.fa -strand both -maxdiffs 8 -minamp 3000 -maxamp 5000 -ampout $fna_name-results/$fna_name-agr_operon.fna &>$fna_name-results/$fna_name-pcr-log.txt
 
 #Check if agr operon file is empty
 if [[ -s $fna_name-results/$fna_name-agr_operon.fna ]] 
