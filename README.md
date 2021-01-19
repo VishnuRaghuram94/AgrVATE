@@ -21,12 +21,12 @@ Please see the [PREREQUISITES](#PREREQUISITES) section for all the tools require
 	conda activate agrvate
 	
 This will install all necessary dependencies EXCEPT Usearch.  	
-Due to Usearch's license, it cannot be provided with the conda installation. Please download and extract usearch11.0.667 from [here](https://www.drive5.com/downloads/usearch11.0.667_i86linux32.gz) and add it to your PATH
+Due to Usearch's license, it cannot be provided with the conda installation. Please download and extract usearch11.0.667 (osx32 or linux32) from [here](https://www.drive5.com/downloads/) and add it to your PATH
 	
-For example:
+For example (Use the version appropriate for your operating system):
 	
 	
-	wget "https://www.drive5.com/downloads/usearch11.0.667_i86linux32.gz"
+	curl "https://www.drive5.com/downloads/usearch11.0.667_i86linux32.gz" --output usearch11.0.667_i86linux32.gz
 	
 	gunzip usearch11.0.667_i86linux32.gz
 	
