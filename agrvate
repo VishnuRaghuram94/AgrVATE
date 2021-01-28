@@ -411,7 +411,8 @@ echo -e "#filename\tposition\ttype\teffect\tgene" > $fna_name-results/$fna_name-
 
 awk -v i="$fna_name" 'BEGIN{FS=OFS="\t"};{if($7=="CDS") print i,$2,$3,$11,$13}' $fna_name-results/$fna_name-snippy/snps.tab | sed 's/ /\t/g' | grep -E -v 'missense_variant' | grep -E -v 'synonymous_variant' >> $fna_name-results/$fna_name-agr_operon_frameshifts.tab
 
-fs=$(cat $fna_name-results/$fna_name-agr_operon_frameshifts.tab | wc -l)
+#Subtract 1 from $fs to account for the header
+fs=$(($(cat $fna_name-results/$fna_name-agr_operon_frameshifts.tab | wc -l)-1))
 
 #summary file
 echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" >> $fna_name-results/$fna_name-summary.tab
@@ -419,8 +420,8 @@ echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" >> $fna_nam
 #Error report file
 echo -e "$bname\t$input_check\t$databases_check\t$outdir_check\t$agr_typing\t$usearch_check\t$snippy_check" >> $bname-error-report.tab
 
-#Check if frameshifts file is empty
-if [[ -s $fna_name-results/$fna_name-agr_operon_frameshifts.tab ]] 
+#Check if frameshifts found
+if [[ $fs > 0 ]] 
 then
 	echo -e "Frameshifts in agr operon found, check $fna_name-results/$fna_name-agr_operon_frameshifts.tab"
 else	
