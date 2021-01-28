@@ -5,7 +5,7 @@
 
 
 
-version="0.5.5"
+version="0.5.6"
 USAGE=$(echo -e "\n\
 AgrVATE: Agr Variant Assessment & Typing Engine \n\n\
 VERSION: agrvate v$version \n\n\
