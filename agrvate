@@ -5,7 +5,7 @@
 
 
 
-version="0.5.6"
+version="0.5.6.1"
 USAGE=$(echo -e "\n\
 AgrVATE: Agr Variant Assessment & Typing Engine \n\n\
 VERSION: agrvate v$version \n\n\
@@ -388,7 +388,7 @@ fi
 ################################
 
 #Running snippy with a group specific reference to call variants in the agr operon
-snippy --outdir $fna_name-results/$fna_name-snippy --ctgs $fna_name-results/$fna_name-agr_operon.fna --ref $databases_path/references/$agr_gp-operon_ref.gbk 2> $fna_name-results/$fna_name-snippy-log.txt
+snippy --outdir $fna_name-results/$fna_name-snippy --ctgs $fna_name-results/$fna_name-agr_operon.fna --ref $databases_path/references/$agr_gp-operon_ref.gbk --minqual 1 --mincov 2 2> $fna_name-results/$fna_name-snippy-log.txt
 
 #Check if snps file is empty
 if [[ -s $fna_name-results/$fna_name-snippy/snps.tab ]]
