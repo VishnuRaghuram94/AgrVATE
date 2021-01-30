@@ -33,7 +33,8 @@ For example (Use the version appropriate for your operating system):
 	chmod 755 usearch11.0.667_i86linux32
 	
 	cp ./usearch11.0.667_i86linux32 $(dirname "$(which agrvate)")
-	
+
+***NOTE:*** Currently, only the 32-bit version of usearch is free to use. This version is not supported by WSL or MacOS (post-Catalina). We understand this limitation and are working on an alternate workflow. But for now it is recommended to use AgrVATE on Linux machines or older versions MacOS. 
 
 ---
 	
@@ -101,7 +102,7 @@ Shen W, Le S, Li Y, Hu F (2016) SeqKit: A Cross-Platform and Ultrafast Toolkit f
 		
 A new directory with suffix ```-results```  will be created where all the following files can be found
 
-***NOTE:*** **There are 15 possible kmers for each agr group per genome. The analyses will continue even if only one kmer matches a given agr-group but it should be noted that < 5 kmers matching leads to a low confidence agr-group call. Col 3 in ```fasta-summary.tab``` shows the number of kmers matched** 
+***NOTE:*** There are 15 possible kmers for each agr group per genome. The analyses will continue even if only one kmer matches a given agr-group but it should be noted that < 5 kmers matching leads to a low confidence agr-group call. Col 3 in ```fasta-summary.tab``` shows the number of kmers matched 
 
 * __**fasta-summary.tab:**__  
 
