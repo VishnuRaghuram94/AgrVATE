@@ -26,15 +26,15 @@ Due to Usearch's license, it cannot be provided with the conda installation. Ple
 For example (Use the version appropriate for your operating system):
 	
 	
-	curl "https://www.drive5.com/downloads/usearch11.0.667_i86linux32.gz" --output usearch11.0.667_i86linux32.gz
+	curl "https://www.drive5.com/downloads/usearch11.0.667_i86linux32.gz" --output usearch11.0.667_i86linux32.gz #Downloads usearch binary
 	
-	gunzip usearch11.0.667_i86linux32.gz
+	gunzip usearch11.0.667_i86linux32.gz #Decompresses usearch binary
 	
-	chmod 755 usearch11.0.667_i86linux32
+	chmod 755 usearch11.0.667_i86linux32 #Changes permissions to executable
 	
-	cp ./usearch11.0.667_i86linux32 $(dirname "$(which agrvate)")
+	cp ./usearch11.0.667_i86linux32 $(dirname "$(which agrvate)") #Copies usearch binary to the same directory as agrvate 
 
-***NOTE:*** Currently, only the 32-bit version of usearch is free to use. This version is not supported by WSL or MacOS (post-Catalina). We understand this limitation and are working on an alternate workflow. But for now it is recommended to use AgrVATE on Linux machines or older versions MacOS. 
+***NOTE:*** Currently, only the 32-bit version of usearch is free to use. This version is not supported by WSL or MacOS (post-Catalina). Therefore, it is recommended to use AgrVATE on Linux machines or older versions MacOS. If you are unable to run usearch, use the ```-m``` option to run MUMmer instead. However, please note that if there are large insertions/deletions in the agr-operon, MUMmer can split the alignment into 2 and the resulting extracted agr-operon will not be intact, in which case frameshift detection using snippy is not run.	
 
 ---
 	
@@ -48,6 +48,9 @@ Camacho, C., Coulouris, G., Avagyan, V. et al. BLAST+: architecture and applicat
 	
 * __[Snippy](https://github.com/tseemann/snippy)__  
 Seemann T (2015). Snippy: fast bacterial variant calling from NGS reads. https://github.com/tseemann/snippy
+
+* __[MUMmer](https://github.com/garviz/MUMmer)__  
+S. Kurtz. et al (2004). Versatile and open software for comparing large genomes. Genome Biology, R12. https://doi.org/10.1186/gb-2004-5-2-r12
 	
 * __[HMMER](http://hmmer.org/)__  
 S.R. Eddy. Biological sequence analysis using profile hidden Markov models. http://hmmer.org/
@@ -73,7 +76,7 @@ Shen W, Le S, Li Y, Hu F (2016) SeqKit: A Cross-Platform and Ultrafast Toolkit f
 			├── gp2-operon_ref.gbk
 			├── gp3-operon_ref.gbk
 			└── gp4-operon_ref.gbk
-				
+			└── mummer_ref_operon.fna	
 	```
 ---
 
@@ -84,6 +87,7 @@ Shen W, Le S, Li Y, Hu F (2016) SeqKit: A Cross-Platform and Ultrafast Toolkit f
 * FLAGS:  
 	* ```-i```&nbsp;&nbsp;&nbsp;Input S. aureus genome in FASTA format [alternate: ```--input```]
 	* ```-t```&nbsp;&nbsp;&nbsp;Does agr typing only (skips agr operon extraction and frameshift detection) [alternate: ```--typing-only```]
+	* ```-m```&nbsp;&nbsp;&nbsp;Uses MUMmer dnadiff instead of usearch [alternate: ```--mummer```]
 	* ```-f```&nbsp;&nbsp;&nbsp;Force overwrite existing results directory [alternate: ```--force```]
 	* ```-d```&nbsp;&nbsp;&nbsp;Path to agrvate_databases (Not required if installed using Conda) [alternate: ```--databases```]
 	* ```-h```&nbsp;&nbsp;&nbsp;Print this help message and exit [alternate: ```--help```]
@@ -102,7 +106,7 @@ Shen W, Le S, Li Y, Hu F (2016) SeqKit: A Cross-Platform and Ultrafast Toolkit f
 		
 A new directory with suffix ```-results```  will be created where all the following files can be found
 
-***NOTE:*** There are 15 possible kmers for each agr group per genome. The analyses will continue even if only one kmer matches a given agr-group but it should be noted that < 5 kmers matching leads to a low confidence agr-group call. Col 3 in ```fasta-summary.tab``` shows the number of kmers matched 
+***NOTE:*** **There are 15 possible kmers for each agr group per genome. The analyses will continue even if only one kmer matches a given agr-group but it should be noted that < 5 kmers matching leads to a low confidence agr-group call. Col 3 in ```fasta-summary.tab``` shows the number of kmers matched** 
 
 * __**fasta-summary.tab:**__  
 
@@ -157,6 +161,12 @@ A new directory with suffix ```-results```  will be created where all the follow
 		
 * __**fasta-snippy/**__  
 	All output files of [Snippy](https://github.com/tseemann/snippy)
+	
+* __**fasta-mummer_log.txt:**__  
+	Standard output of [MUMmer dnadiff](https://github.com/garviz/MUMmer)
+		
+* __**fasta-mummer/**__  
+	All output files of [MUMmer dnadiff](https://github.com/garviz/MUMmer)	
 
 ### TROUBLESHOOTING	
 
@@ -176,7 +186,7 @@ The columns are ordered by how the processes are carried out. i.e col 1 is the f
 		col 3: Databases check - If fail, the databases folder or the path to the databases was not valid. 
 		col 4: Outdir check - If fail, the results directory already exists and couldn't be overwritten. Use flag -f or --force. 
 		col 5: Agr typing - If fail, the Agr typing kmer search could not be performed. Check if blastn is installed correctly. 
-		col 6: Usearch check - If fail, in-silico PCR was not performed by usearch. Check if usearch is installed correctly. 
+		col 6: Operon check - If fail, in-silico PCR was not performed by usearch or agr operon search was not performed by mummer. Check if usearch/mummer is installed correctly. 
 		col 7: Snippy check - If fail, agr operon frameshift detection was not performed. Check if snippy is installed correctly.
 
 	*If multiple assemblies are run, use this command from parent directory to output a consolidated report table for all samples*
