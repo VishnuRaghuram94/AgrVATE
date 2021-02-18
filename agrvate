@@ -1,11 +1,11 @@
 #!/bin/bash
-
+#set -x
 #Vishnu Raghuram 2020-11-12
 #bash script for extracting intact agr operons from S. aureus and identifying frameshift mutations using agr-group specific references 
 
 
 
-version="0.5.6.1"
+version="0.5.7"
 USAGE=$(echo -e "\n\
 AgrVATE: Agr Variant Assessment & Typing Engine \n\n\
 VERSION: agrvate v$version \n\n\
@@ -14,6 +14,7 @@ agrvate [options] -i filename.fasta \n\n\
 FLAGS: \n\
   -i | --input           Input S. aureus genome in FASTA format\n\
   -t | --typing-only     Does agr typing only (skips agr operon extraction and frameshift detection)\n\
+  -m | --mummer          Uses mummer instead of usearch (May not perform frameshift detection)\n\
   -f | --force           Force overwrite existing results directory\n\
   -d | --databases       Path to agrvate_databases (Not required if installed using Conda)\n\
   -h | --help            Print this help message and exit\n\
@@ -23,8 +24,10 @@ SOURCE:  https://github.com/VishnuRaghuram94/AgrVATE\n\n\
 
 force=0
 typing_only=0
+mumm=0
 script_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )
 databases_path="$script_dir/agrvate_databases/"
+extraction="pcr"
 
 if [[ ! $1 ]]
  then
@@ -75,7 +78,14 @@ while :; do
 			shift
 			continue
 			;;
-			
+
+		-m|--mummer)
+			mumm=$((mumm + 1))
+			extraction="mummer"
+			shift
+			continue
+			;;
+		
 		-v|--version)
 			echo -e "agrvate v$version"
 			shift
@@ -109,7 +119,7 @@ usearch_check="fail"
 snippy_check="fail"
 
 #Error report file
-echo -e "#input_name\tinput_check\tdatabases_check\toutdir_check\tagr_typing\tusearch_check\tsnippy_check" > $bname-error-report.tab
+echo -e "#input_name\tinput_check\tdatabases_check\toutdir_check\tagr_typing\toperon_check\tsnippy_check" > $bname-error-report.tab
 
 ###########################
 #### INPUT VALIDATIONS ####
@@ -306,64 +316,89 @@ fi
 ##### EXTRACTING AGR OPERON #####
 #################################
 
-#Get operating system
-if [[ $OSTYPE == *[lL]inux* ]]
+if [[ $mumm -eq 0 ]] #If option --mummer not enabled, do usearch
  then
-	usearch_bin=usearch11.0.667_i86linux32
-elif [[ $OSTYPE == *[dD]arwin* ]]
- then
-	usearch_bin=usearch11.0.667_i86osx32
-else
-	1>&2 echo -e "Error running usearch, unable to determine usearch version. Use flag -t to skip frameshift detection"
-	fs="u"
-	#summary file
-	echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" >> $fna_name-results/$fna_name-summary.tab
-	#Error report file
-	echo -e "$bname\t$input_check\t$databases_check\t$outdir_check\t$agr_typing\t$usearch_check\t$snippy_check" >> $bname-error-report.tab
-	exit 1
-fi	
-
-#Check if usearch11.0.667 binary is in PATH
-path_to_usearch=$(which $usearch_bin)
-
-if [[ -x $path_to_usearch ]]
- then
-	#Check usearch exit status
-	if [[ $($usearch_bin &> /dev/null; echo $?) > 0 ]]
+	#Get operating system
+	if [[ $OSTYPE == *[lL]inux* ]]
 	 then
-		1>&2 echo -e "Error running usearch, please make sure usearch is installed correctly. Otherwise, use flag -t to skip frameshift detection"
+		usearch_bin=usearch11.0.667_i86linux32
+	elif [[ $OSTYPE == *[dD]arwin* ]]
+	 then
+		usearch_bin=usearch11.0.667_i86osx32
+	else
+		1>&2 echo -e "Error running usearch, unable to determine usearch version. Use flag -m to use mummer instead"
 		fs="u"
 		#summary file
 		echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" >> $fna_name-results/$fna_name-summary.tab
 		#Error report file
 		echo -e "$bname\t$input_check\t$databases_check\t$outdir_check\t$agr_typing\t$usearch_check\t$snippy_check" >> $bname-error-report.tab
 		exit 1
-	else	
-		echo -e "usearch found"
-		usearch_check="pass"
+	fi	
+
+	#Check if usearch11.0.667 binary is in PATH
+	path_to_usearch=$(which $usearch_bin)
+
+	if [[ -x $path_to_usearch ]]
+	 then
+		#Check usearch exit status
+		if [[ $($usearch_bin &> /dev/null; echo $?) > 0 ]]
+		 then
+			1>&2 echo -e "Error running usearch, please make sure usearch is installed correctly. Otherwise, use flag -m to use mummer instead"
+			fs="u"
+			#summary file
+			echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" >> $fna_name-results/$fna_name-summary.tab
+			#Error report file
+			echo -e "$bname\t$input_check\t$databases_check\t$outdir_check\t$agr_typing\t$usearch_check\t$snippy_check" >> $bname-error-report.tab
+			exit 1
+		else	
+			echo -e "usearch found"
+			usearch_check="pass"
+		fi
+	else
+		1>&2 echo -e "$usearch_bin not in path, cannot perform frameshift detection\n please download usearch11.0.667 from https://www.drive5.com/usearch/download.html"
+		1>&2 echo -e "For example:\n\tcurl 'https://www.drive5.com/downloads/$usearch_bin.gz' --output $usearch_bin.gz\n\tgunzip $usearch_bin.gz\n\tchmod 755 $usearch_bin\n\tcp ./$usearch_bin $script_dir/" 
+		1>&2 echo -e "Otherwise, use flag -m to use mummer"
+		fs="u"
+		#summary file
+		echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" >> $fna_name-results/$fna_name-summary.tab
+		#Error report file
+		echo -e "$bname\t$input_check\t$databases_check\t$outdir_check\t$agr_typing\t$usearch_check\t$snippy_check" >> $bname-error-report.tab
+		exit 1
 	fi
+	
+	#In-silico PCR using predefined primers(agr_operon_primers.fa) to extract agr operon
+	$usearch_bin -search_pcr $fasta_path -db $databases_path/agr_operon_primers.fa -strand both -maxdiffs 8 -minamp 3000 -maxamp 5000 -ampout $fna_name-results/$fna_name-agr_operon.fna &>$fna_name-results/$fna_name-pcr-log.txt
+	
 else
-	1>&2 echo -e "$usearch_bin not in path, cannot perform frameshift detection\n please download usearch11.0.667 from https://www.drive5.com/usearch/download.html"
-	1>&2 echo -e "For example:\n\tcurl 'https://www.drive5.com/downloads/$usearch_bin.gz' --output $usearch_bin.gz\n\tgunzip $usearch_bin.gz\n\tchmod 755 $usearch_bin\n\tcp ./$usearch_bin $script_dir/" 
-	1>&2 echo -e "Otherwise, use flag -t to skip frameshift detection"
-	fs="u"
-	#summary file
-	echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" >> $fna_name-results/$fna_name-summary.tab
-	#Error report file
-	echo -e "$bname\t$input_check\t$databases_check\t$outdir_check\t$agr_typing\t$usearch_check\t$snippy_check" >> $bname-error-report.tab
-	exit 1
-fi
-
-
-#In-silico PCR using predefined primers(agr_operon_primers.fa) to extract agr operon
-$usearch_bin -search_pcr $fasta_path -db $databases_path/agr_operon_primers.fa -strand both -maxdiffs 8 -minamp 3000 -maxamp 5000 -ampout $fna_name-results/$fna_name-agr_operon.fna &>$fna_name-results/$fna_name-pcr-log.txt
+	#if --mummer is enabled, use mummer.
+	mkdir $fna_name-results/$fna_name-mummer/
+	dnadiff $databases_path/references/mummer_ref_operon.fna $fasta_path -p $fna_name-results/$fna_name-mummer/out &>$fna_name-results/$fna_name-mummer-log.txt
+	if [[ $(echo $?) == 0 ]]
+	 then
+		usearch_check="pass"
+		echo "Mummer successful"
+		if [[ $(cat $fna_name-results/$fna_name-mummer/out.1coords | wc -l) -eq 1 ]]
+		 then
+			echo "Extracting agr operon from mummer output"
+			cut -f3,4,13 $fna_name-results/$fna_name-mummer/out.1coords | awk '{if($1<$2) print $3":"$1"-"$2; else print $3":"$2"-"$1;}' | xargs -I {} samtools faidx $fasta_path {} > $fna_name-results/$fna_name-agr_operon.fna
+		fi 
+	 else
+		1>&2 echo -e "Error running mummer, please make sure mummer is installed correctly"
+			fs="u"
+			#summary file
+			echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" >> $fna_name-results/$fna_name-summary.tab
+			#Error report file
+			echo -e "$bname\t$input_check\t$databases_check\t$outdir_check\t$agr_typing\t$usearch_check\t$snippy_check" >> $bname-error-report.tab
+			exit 1
+	fi	
+fi 	
 
 #Check if agr operon file is empty
 if [[ -s $fna_name-results/$fna_name-agr_operon.fna ]] 
 then
 	echo -e "agr operon extraction successful"
 else	
-	echo -e "Unable to find agr operon, check $fna_name-results/$fna_name-pcr-log.txt"
+	echo -e "Unable to find agr operon, check $fna_name-results/$fna_name-$extraction-log.txt"
 	fs="u"
 	#summary file
 	echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" >> $fna_name-results/$fna_name-summary.tab
@@ -409,7 +444,7 @@ fi
 
 echo -e "#filename\tposition\ttype\teffect\tgene" > $fna_name-results/$fna_name-agr_operon_frameshifts.tab
 
-awk -v i="$fna_name" 'BEGIN{FS=OFS="\t"};{if($7=="CDS") print i,$2,$3,$11,$13}' $fna_name-results/$fna_name-snippy/snps.tab | sed 's/ /\t/g' | grep -E -v 'missense_variant' | grep -E -v 'synonymous_variant' >> $fna_name-results/$fna_name-agr_operon_frameshifts.tab
+awk -v i="$fna_name" 'BEGIN{FS=OFS="\t"};{if($7=="CDS") print i,$2,$3,$11,$13}' $fna_name-results/$fna_name-snippy/snps.tab | sed 's/ /\t/g' | grep -E -v '[conservative|disruptive]_inframe_[insertion|deletion]|splice_region_variant&stop_retained_variant|intergenic_region|initiator_codon_variant|gene_fusion|missense_variant' | grep -E -v 'synonymous_variant' >> $fna_name-results/$fna_name-agr_operon_frameshifts.tab
 
 #Subtract 1 from $fs to account for the header
 fs=$(($(cat $fna_name-results/$fna_name-agr_operon_frameshifts.tab | wc -l)-1))
