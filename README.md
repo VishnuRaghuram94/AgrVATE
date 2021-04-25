@@ -14,7 +14,7 @@ AgrVATE accepts a *S. aureus* genome assembly as input and performs a kmer searc
 
 # INSTALLATION:
 
-Please see the [PREREQUISITES](#PREREQUISITES) section for all the tools required to run AgrVATE. For ease of use, I recommended you install AgrVATE using [Conda](https://conda.io/en/latest/).  ***COMING SOON***
+Please see the [PREREQUISITES](#PREREQUISITES) section for all the tools required to run AgrVATE. For ease of use, I recommended you install AgrVATE using [Conda](https://conda.io/en/latest/).
 
 	
 	conda create -n agrvate -c bioconda agrvate
@@ -34,7 +34,7 @@ For example (Use the version appropriate for your operating system):
 	
 	cp ./usearch11.0.667_i86linux32 $(dirname "$(which agrvate)") #Copies usearch binary to the same directory as agrvate 
 
-***NOTE:*** Currently, only the 32-bit version of usearch is free to use. This version is not supported by WSL or MacOS (post-Catalina). Therefore, it is recommended to use AgrVATE on Linux machines or older versions MacOS. If you are unable to run usearch, use the ```-m``` option to run MUMmer instead. However, please note that if there are large insertions/deletions in the agr-operon, MUMmer can split the alignment into 2 and the resulting extracted agr-operon will not be intact, in which case frameshift detection using snippy is not run.	
+***NOTE:*** Currently, only the 32-bit version of usearch is free to use. This version is not supported by WSL or MacOS (post-Catalina). Therefore, it is recommended to use AgrVATE on Linux machines or older versions MacOS. If you are unable to run usearch, use the ```-m``` option to run MUMmer instead (IN BETA). However, please note that if there are large insertions/deletions in the agr-operon, MUMmer can split the alignment into 2 and the resulting extracted agr-operon will not be intact, in which case frameshift detection using snippy is not run.	
 
 ---
 	
