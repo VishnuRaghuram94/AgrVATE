@@ -1,11 +1,11 @@
 #!/bin/bash
-#set -x
+
 #Vishnu Raghuram 2020-11-12
-#bash script for extracting intact agr operons from S. aureus and identifying frameshift mutations using agr-group specific references 
 
 
 
-version="0.5.7"
+
+version="1.0"
 USAGE=$(echo -e "\n\
 AgrVATE: Agr Variant Assessment & Typing Engine \n\n\
 VERSION: agrvate v$version \n\n\
