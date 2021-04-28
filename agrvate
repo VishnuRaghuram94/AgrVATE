@@ -5,7 +5,7 @@
 
 
 
-version="1.0"
+version="1.0.1"
 USAGE=$(echo -e "\n\
 AgrVATE: Agr Variant Assessment & Typing Engine \n\n\
 VERSION: agrvate v$version \n\n\
@@ -135,7 +135,7 @@ if [[ -f $fasta_path ]] #Check if input is a file
 		 then	
 			if [[ $(grep -v ">" $fasta_path | grep -q -i "[^ATCGNWSMKRY]"; echo $?) -eq 1 ]] #check if seqence has characters other than ATGCN
 			 then
-				fna_name=$(echo "$bname" | cut -f1 -d".")
+				fna_name="${bname%.*}"
 				input_check="pass"
 			else
 				1>&2 echo -e "Seqence has non-standard nucleic acid characters\n$USAGE" 
