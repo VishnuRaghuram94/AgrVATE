@@ -1,0 +1,6 @@
+molecule	gene	start	end	strand	direction
+Agr Operon	hld	3997	4129	forward	-
+Agr Operon	agrB	3190	3813	reverse	+
+Agr Operon	agrD	3053	3193	reverse	+
+Agr Operon	agrC	1736	3028	reverse	+
+Agr Operon	agrA	1000	1717	reverse	+
