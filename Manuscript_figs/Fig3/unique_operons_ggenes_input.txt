@@ -1,0 +1,7 @@
+molecule	gene	start	submin	end	submax	strand	direction
+p.Ile238fs	agrA	0	0	238	237	forward	+
+p.Glu163fs	agrA	0	0	238	163	forward	+
+p.Phe201fs	agrB	0	0	207	201	forward	+
+p.Tyr163fs	agrC	0	0	430	163	forward	+
+p.Ile139fs	agrC	0	0	430	139	forward	+
+p.Val1?	agrC	0	0	430	1	forward	+
