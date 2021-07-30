@@ -1,0 +1,692 @@
+---
+title: Figures - Convergent evolution of frameshifts in the Staphylococcus aureus accessory gene regulator (agr) operon suggests conserved strategies for virulence regulation
+author: "Vishnu Raghuram"
+date: "6/24/2021"
+output:
+  html_document: default
+---
+
+### Load libraries
+
+```{r warning=FALSE, include=TRUE, message=FALSE}
+library(Biostrings)
+library(dplyr)
+library(viridis)
+library(scales)
+library(cowplot)
+library(ggplot2)
+library(hrbrthemes)
+library(gggenes)
+library(devtools)
+library(extrafont)
+library(svglite)
+library(MASS)
+library(emmeans)
+library(tidyverse)
+library(ggtree)
+library(svglite)
+library(ggtext)
+
+
+axistextx<-20
+axistexty<-20
+axistitlex<-20
+axistitley<-20
+legendtext<-20
+legendtitle<-20
+
+```
+
+
+### Fig 1
+
+##### Agrvate summary results and Staphopia metadata 
+```{r warning=FALSE,fig.height=7}
+info<-read.table("Fig1/agrvate_metadata.tab",header = T, sep="\t",na.strings = c("","NA"),stringsAsFactors=FALSE, quote="", fill=FALSE)
+#info$fs<-as.factor(info$fs)
+row.names(info)<-info$acc
+info$CC[info$CC!="CC1" & info$CC!="CC130" & info$CC!="CC15" & info$CC!="CC22" & info$CC!="CC30" & info$CC!="CC398" & info$CC!="CC45" & info$CC!="CC5" & info$CC!="CC8" & info$CC!="CC95"] <-"Other"
+
+```
+
+
+#### Fig 1B: Get distribution of agr groups across Staphopia
+```{r warning=FALSE, fig.height=7}
+
+Fig1B<-ggplot(data=info,aes(x=gp,fill=gp))+
+  geom_bar(stat="count",color="black",width = 0.5,size=1,position=position_dodge()) +
+  theme_ipsum(base_family = "Arial")+ 
+  scale_fill_manual(limits=c("gp1","gp2","gp3","gp4"),labels=c("Group 1","Group 2","Group 3","Group 4"),values=c(viridis(4))) +
+  theme(axis.text.x = element_text(angle=45,size = axistextx,vjust=0.7,hjust=0.7,color="black",face="bold"),axis.text.y=element_text(size=axistexty)) + 
+  theme(axis.title.y=element_text(size=axistitley,color="black",vjust=4))+ 
+  theme(legend.position = "right",legend.text=element_text(size=legendtext),legend.key.size = unit(1, 'cm'),legend.title = element_text(size=legendtitle)) +
+  ylab("Number of strains") + xlab("") +
+  scale_x_discrete(labels=c("Group 1","Group 2","Group 3","Group 4"))
+
+ggsave("Fig1/Fig1B.svg",plot=Fig1B,device="svg",width = 8,height = 5)
+
+Fig1B
+
+```
+
+#### Fig 1C: Distribution of agr groups across predominant CCs 
+```{r warning=FALSE,fig.height=7}
+Fig1C<-ggplot(data=info,aes(x=forcats::fct_infreq(CC),fill=gp))+
+  geom_bar(stat="count",color="black",width = 0.5,size=1) +
+  theme_ipsum(base_family = "Arial")+ 
+  scale_fill_manual(limits=c("gp1","gp2","gp3","gp4"),labels=c("Group 1","Group 2","Group 3","Group 4"),values=c(viridis(4))) +
+  theme(axis.text.x = element_text(angle=45,size = axistextx,vjust=0.7,hjust=0.7,color="black",face="bold"),axis.text.y=element_text(size=axistexty,vjust=0.2)) + 
+  theme(axis.title.y=element_text(size=axistitley,color = "black",vjust=4))+ theme(legend.position = "none") +
+  ylab("Number of strains") + xlab("")+
+  geom_vline(xintercept = 10.5)+
+  scale_x_discrete(limits=c("CC8","CC22","CC5","CC30","CC398","CC45","CC15","CC1","CC130","CC95","Other"))
+
+ggsave("Fig1/Fig1C.svg",plot=Fig1C,device="svg",width=9,height=7)
+
+Fig1C
+
+```
+
+
+##### Get blood, nares, skin and respiratory isolate data from metadata table and calculate relative proportions
+```{r warning=FALSE}
+x<-data.frame(subset(info[(info$host_body_site.y == "blood" | info$host_body_site.y == "nares" | info$host_body_site.y == "skin or soft tissue" | info$host_body_site.y == "respiratory" ),],!is.na(host_body_site.y)) %>% group_by(host_body_site.y,gp) %>% summarize(n=n()) %>% mutate(freq=n/sum(n)))
+
+```
+
+#### Fig 1D: Distribution of agr groups across blood, nares, respiratory and skin isolates
+```{r warning=FALSE, fig.height=7}
+
+Fig1D<-ggplot(data=x,aes(fill=gp))+
+  geom_bar(aes(x=as.factor(host_body_site.y),y=freq*100),stat="identity",color="black",width = 0.25,size=1.25) +
+  scale_fill_manual(limits=c("gp1","gp2","gp3","gp4"),labels=c("Group 1","Group 2","Group 3","Group 4"),values=c(viridis(4)))+
+  theme_ipsum(base_family = "Arial") + 
+  scale_fill_manual(values =c(viridis(4))) + 
+  theme(axis.text.x = element_text(angle=45,size = axistextx,vjust=1,hjust=1,color="black",face="bold"),axis.text.y=element_text(size=axistexty,vjust=-0.1)) + 
+  theme(axis.title.y=element_text(color = "black",size=axistitley,vjust = 4))+
+  ylab("Proportion of strains (%)") + 
+  xlab("") +
+  theme(legend.position = "none")
+
+ggsave("Fig1/Fig1D.svg",plot=Fig1D,device="svg")
+
+Fig1D
+
+```
+
+
+### Fig 2
+
+#### Fig 2A: No. of agr groups in each agr AA seq cluster
+
+##### Read AgrA uclust table and get number of agr groups in each cluster for each agr gene
+```{r warning=FALSE}
+dat_AA<-read.table("Fig2/agr_operon_typing_AA_filteredCCs.tab",header = T,sep="\t")
+
+dat_long<-(gather(dat_AA,gene,agr_type,AgrA_repacc:AgrC_repacc,factor_key=T))
+
+x_summary<-dat_long %>% group_by(agr_type,gene,gp) %>% summarize(n=n()) %>% mutate(total=sum(n)) %>% filter(total>10)
+
+agr_gene_spec<-as.data.frame(table(x_summary$agr_type,x_summary$gene))
+
+agr_gene_spec<-distinct(merge(agr_gene_spec,x_summary[,c("agr_type","gene","total")],by.x=c("Var1","Var2"),by.y=c("agr_type","gene")))
+
+```
+
+```{r warning=FALSE,fig.width=9,fig.height=7}
+
+set.seed(10)
+Fig2A<-ggplot(data=agr_gene_spec[agr_gene_spec$Freq!=0 & agr_gene_spec$total >50,])+
+  geom_jitter(aes(x=Var2,y=Freq,fill=log10(total)),width=0.2,height=0.05,shape=21,color="black",size=5)+
+ labs(fill="No. of sequences\nin cluster")+
+   ylim(0,4)+
+  theme_ipsum(base_family = "Arial")+
+  labs(x="",y="Number of agr groups")+
+  scale_fill_viridis_c(option="magma",limits=c(1.5,4.6),breaks=c(1.69897,3,4,4.477),labels=c("50","1000","10,000","30,000"))+
+  geom_hline(yintercept = c(1,2,3,4))+
+  scale_x_discrete(labels=c("AgrA","AgrB","AgrC"))+
+  theme(axis.text.x=element_text(color="black",size=axistextx,face="bold",angle=45,vjust=0.7))+
+  theme(axis.title.y=element_text(color="black",size=axistitley,vjust = 4))+
+  theme(axis.text.y=element_text(color="black",size=axistexty))+
+  theme(legend.position = "right",legend.text=element_text(size=legendtext),legend.key.size = unit(1, 'cm'),legend.title = element_text(size=legendtitle,face="bold"))
+  
+
+ggsave("Fig2/Fig2A.svg",plot=Fig2A,device="svg")
+
+Fig2A
+
+```
+
+#### Fig 2C: Phylogeny of NRD strains from staphopia showing AgrA AACR type. 
+
+#### Read Staphopia NRD set phylogenetic tree, agrA clustering table and NRD AgrVATE summary
+```{r warning=FALSE}
+tree_genome<-read.tree(file='Fig2/nrd_genomes_parsnp_filtered.mfa.treefile')
+agrA_type<-read.table(file="Fig2/agrA_clusterID-acc.txt",sep="\t",header = F,stringsAsFactors = F)
+colnames(agrA_type)<-c("agrA_type","acc")
+nrd_agr_summary<-read.table(file="Fig2/nrd_agrvate_summary.tab",header=T)
+
+```
+
+
+```{r warning=FALSE,fig.width=8,fig.height=6}
+
+#Set names for major and minor AACRs, call other AACRs "Other"
+
+x<-merge(nrd_agr_summary,agrA_type,by="acc",all=T)
+x$agrA_type[x$agrA_type!="337" & x$agrA_type!="283"]<-"Other"
+x$agrA_type[x$agrA_type=="337"]<-"agrA-K"
+x$agrA_type[x$agrA_type=="283"]<-"agrA-R"
+rownames(x)<-x$acc
+
+Fig2C_1<-ggtree(tree_genome,layout = 'rectangular',branch.length = "1",size=0.8,color="black") %<+% x + 
+  geom_tippoint(size=1.5,aes(color=agrA_type))+
+  theme(legend.position = "right") +
+  guides(shape = guide_legend(override.aes = list(size = 10)))+
+  theme_minimal()+
+  scale_color_manual("AgrA Type",values=c("red","blue","grey"),labels=c("AgrA-K","AgrA-R","Other"))+
+  theme(axis.text=element_text(size=axistextx,color="black"))+
+  theme(axis.text = element_blank())+
+  theme(legend.position = "right",legend.text=element_text(size=legendtext),legend.key.size = unit(1, 'cm'),legend.title = element_text(size=legendtitle,face="bold"))+
+  geom_treescale(x=0.001,y=300, fontsize=5,linesize = 1,offset=5)
+
+Fig2C<-gheatmap(Fig2C_1,x[,c("gp"),drop=F],offset=0,width=0.05,colnames = F,color=NULL)+
+  scale_fill_manual("agr group",values=c(viridis(4)),limits=c("gp1","gp2","gp3","gp4"),labels=c("Group 1","Group 2","Group 3","Group 4"))
+
+ggsave("Fig2/Fig2C.svg",plot=Fig2C,device="svg",width=8,height=6)
+
+Fig2C
+
+```
+
+#### Fig 2D: LD plot
+
+##### Read LD output from plink, filter for R^2 values < 0.2 and set factor level breaks
+```{r warning=FALSE}
+ld<-read.table("Fig2/plink_snippy_core_full-aln.ld",header=T,sep="\t")
+
+ld <- filter(ld,R2>0.2)
+ld <- ld %>% arrange(R2)
+ld$x <- ld$BP_A+((ld$BP_B-ld$BP_A)/2)
+ld$y <- ld$BP_B-ld$BP_A
+ld$r2c <- cut(ld$R2,breaks=seq(0,1,0.2),labels=c("0.0 - 0.2","0.2 - 0.4","0.4 - 0.6","0.6 - 0.8","0.8 - 1.0"))
+ld$r2c <- factor(ld$r2c,levels=rev(c("0.0 - 0.2","0.2 - 0.4","0.4 - 0.6","0.6 - 0.8","0.8 - 1.0")))
+
+genes<-read.table(file="Fig2/plink_gggenes.txt",header=T,sep="\t")
+
+```
+
+
+```{r warning=FALSE, fig.width=8, fig.height=5}
+Fig2D_1<-ggplot(ld,aes(x=x,y=-y,color=r2c))+
+  geom_point(shape=18,size=1.5)+
+  scale_color_manual(values=c("#000000","#5c5c5c","#9c9c9c","#dedede","#FFFFFF"))+
+  labs(x="",y="Distance between SNP pairs (kb)")+
+  theme_minimal() +
+  theme(axis.title.x = element_blank(),axis.title.y = element_text(size=axistitley,color="black",vjust=2),axis.text.y=element_text(size=axistexty,color="black")) +
+  theme(legend.position = "right",legend.text=element_text(size=legendtext),legend.key.size = unit(1, 'cm'),legend.title = element_text(size=legendtitle,face="bold")) +
+  guides(colour=guide_legend(title="R2",override.aes=list(shape=18,size=7)))+
+  theme(plot.margin = unit(c(0,.6,.0,.6),"lines"))+
+  theme(axis.text.x=element_blank())+
+  geom_vline(xintercept = c(1000,1717,1736,3028,3053,3193,3190,3813,3997,4129),color="grey")+
+  scale_y_continuous(breaks = c(-1000,-2000,-3000,-4000),labels=c("1","2","3","4"))
+
+
+Fig2D_2<-ggplot(data=genes,aes(xmin = start, xmax = end, y = molecule, fill = gene,label=gene)) +
+  geom_gene_arrow(data=genes[genes$gene != "hld",],aes(forward=F),color="black",size=1.25,arrowhead_height = unit(7,"mm"), arrowhead_width = unit(7,"mm"),arrow_body_height = unit(7,"mm")) +
+  geom_gene_arrow(data=genes[genes$gene == "hld",],aes(forward=T),color="black",size=1.25,arrowhead_height = unit(7,"mm"), arrowhead_width = unit(7,"mm"),arrow_body_height = unit(7,"mm")) +
+  scale_fill_manual(values=(c("#D8DFE8","#687582","#A7BCD1","#FF8000","#EB8DA9"))) +
+  theme_minimal() +
+  theme(axis.text.y = element_blank()) +
+  theme(panel.grid.major.x = element_line(color = "grey"),legend.position = "none",panel.grid.minor.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank(),panel.grid.minor.y = element_blank()) +
+  theme(axis.title.x = element_blank(),axis.title.y = element_blank()) +
+  theme(axis.text.x=element_text(size=axistextx))+
+  xlim(0,5482)+
+  theme(plot.margin = unit(c(0,6,0.6,0.0),"lines"))+
+  geom_vline(xintercept = c(1000,1717,1736,3028,3053,3193,3190,3813,3997,4129),color="grey")
+
+Fig2D<-plot_grid(Fig2D_2,Fig2D_1,ncol=1,align="v",rel_heights = c(0.7,4),axis="lrbt")
+
+ggsave("Fig2/Fig2D.svg",plot=Fig2D,device="svg",height = 7,width = 10)
+
+Fig2D
+
+```
+
+### Fig 3
+
+#### Fig 3A: Frequency of frameshifts per site
+
+##### Agrvate variant calling results for agr operon cluster representatives
+```{r warning=FALSE}
+agrvate_fs<-read.table("Fig3/unique_staphopia_agrvate_2_TRUE_FRAMESHIFTS.tab",sep="\t",header=F,stringsAsFactors=FALSE, quote="", fill=FALSE)
+colnames(agrvate_fs)<-c("acc","POS","TYPE","EFFECT","NA_CHANGE","AA_CHANGE","GENE")
+
+#Merge with metadata table
+agrvate_fs<-merge(agrvate_fs,info[,c("acc","st","CC","gp","no_fs","address","collection_date","study_accession","sample_accession")],by="acc")
+
+#Read gggenes coordinates table
+genes<-read.table(file="Fig3/gp1_gggenes.txt",header=T,sep="\t")
+
+```
+
+```{r warning=FALSE,fig.width=7, fig.height=7}
+Fig3A_1<-ggplot(data=NULL) + 
+  geom_histogram(data=agrvate_fs,aes(x=POS,fill=gp),color="black",binwidth=40,size=0.5) +
+  scale_fill_manual(limits=c("gp1","gp2","gp3","gp4"),values=c(viridis(4))) +
+  theme_tinyhand() + 
+  theme(panel.grid.major.x = element_line(color = "grey"),panel.grid.minor.x = element_blank(),axis.text.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank(),panel.grid.minor.y = element_blank()) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y=element_text(color="black",size=axistitley,vjust = 4))+
+  theme(axis.text.y=element_text(color="black",size=axistexty,hjust=2))+
+  theme(legend.position = "none")+
+  xlim(-10,3482)+
+  ylab("Number of genomes with mutated site")+
+  theme(plot.margin = unit(c(.2,0,0.2,0.2),"lines"))
+
+
+Fig3A_2<-ggplot(data=NULL) +
+  geom_gene_arrow(data=genes[genes$gene != "hld",],aes(xmin = start, xmax = end, y = molecule, fill = gene,forward=F),color="black",size=1.25,arrowhead_height = unit(7,"mm"), arrowhead_width = unit(7,"mm"),arrow_body_height = unit(7,"mm")) +
+  geom_gene_arrow(data=genes[genes$gene == "hld",],aes(xmin = start, xmax = end, y = molecule, fill = gene,forward=T),color="black",size=1.25,arrowhead_height = unit(7,"mm"), arrowhead_width = unit(7,"mm"),arrow_body_height = unit(7,"mm")) +
+  scale_fill_manual(values=(c("#D8DFE8","#687582","#A7BCD1","#FF8000","#EB8DA9"))) +
+  theme_minimal() +
+  theme(axis.text.y = element_blank()) +
+  theme(panel.grid.major.x = element_line(color = "grey"),legend.position = "none",panel.grid.minor.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank(),panel.grid.minor.y = element_blank()) +
+  theme(axis.title.x = element_blank(),axis.title.y = element_blank())+
+  xlim(-10,3482)+
+  theme(axis.text.x = element_text(size=axistextx))
+  theme(plot.margin = unit(c(.2,0,0.2,0.2),"lines"))
+
+
+Fig3A<-plot_grid(Fig3A_1,Fig3A_2,ncol=1,align="v",rel_heights = c(3,0.5),axis="bt")
+
+ggsave("Fig3/Fig3A.svg",plot=Fig3A,device="svg",height=7,width=7)
+
+Fig3A
+
+```
+
+#### Fig 3B: Frequency and effect of recurring agr frameshifts
+
+##### Get 10 most frequent frameshifts in unique agr operons and their coordinates
+```{r warning=FALSE}
+#Get 10 most frequent frameshifts in unique agr operons
+variants_10<-agrvate_fs %>% group_by(AA_CHANGE) %>% filter(n() > 20)
+
+#Read gggenes coordinates for 10 most frequent frameshifts in unique agr operons
+genes<-read.table(file="Fig3/unique_operons_ggenes_input.txt",header=T,sep="\t")
+
+```
+
+```{r warning=FALSE,fig.width=10, fig.height=7}
+Fig3B_1<-ggplot(data=variants_10,aes(y=AA_CHANGE,fill=gp))+
+  geom_bar(stat="count",colour="black",size=0.75,width=0.25) + 
+  scale_fill_manual(limits=c("gp1","gp2","gp3","gp4"),values=c(viridis(4)))+
+  theme_linedraw() + 
+  theme(axis.text.x = element_text(angle=0,size = axistextx,vjust=0.4,color="black"),axis.text.y=element_text(size=axistexty,color="black")) + 
+  theme(axis.title.y=element_text(size=axistitley,vjust=1,face="bold")) +
+  
+  facet_grid(GENE~.,scales = "free_y",space="free") +
+  theme(plot.margin = unit(c(.3,.3,.3,-.8),"lines")) +
+  labs(x="",y="") +
+  theme(legend.position = "none") +
+  theme(panel.grid.major.y = element_line(color="black"))+
+  theme(strip.text.y = element_text(size=axistexty,color="black",face="bold.italic",angle=0),strip.background = element_rect(fill="grey"))+
+  theme(panel.grid.minor.x = element_blank(),panel.grid.major.x = element_line(color="grey"))+
+  theme(axis.title.x = element_text(size=axistitlex,color="black",face="bold",vjust=-0.5))+
+  xlab("Number of frameshift+ operons")+
+  scale_x_continuous(breaks=c(20,40))+
+  ggtitle("Frequency")+
+  theme(plot.title=element_text(size=20,face="bold",color="black"))
+
+
+Fig3B_2<-ggplot(data=genes,aes(xmin=start,xmax=end,y=molecule,forward=T)) +
+  geom_gene_arrow(data=genes,aes(xmin=submin,xmax=submax,fill=gene),color="red",size=1.25,arrowhead_height = unit(5,"mm"), arrowhead_width = unit(5,"mm"),arrow_body_height = unit(5,"mm")) +
+  geom_gene_arrow(fill=NA,color="black",size=1.25,arrowhead_height = unit(5,"mm"), arrowhead_width = unit(5,"mm"),arrow_body_height = unit(5,"mm")) +
+  scale_fill_manual(values=(c("#D8DFE8","#687582","#A7BCD1","#FF8000","#EB8DA9"))) +
+  scale_color_manual(values=(c("#D8DFE8","#687582","#A7BCD1","#FF8000","#EB8DA9"))) +
+  theme_linedraw() +
+  theme(axis.text.y = element_blank()) +
+  theme(panel.grid.major.x = element_line(color = "grey"),legend.position = "none",panel.grid.minor.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank(),panel.grid.minor.y = element_blank()) +
+  theme(axis.title.x = element_text(size=23,color="black",face="bold",vjust=-0.5),axis.title.y = element_blank()) +
+  xlab("Amino acid sequence length")+
+  facet_grid(gene~.,scales="free_y",space="free") + 
+  theme(strip.text.y = element_blank())+
+  scale_x_reverse() + 
+  scale_y_discrete(position = "right")+
+  theme(plot.margin = unit(c(.3,0,0.3,0.3),"lines")) +
+  theme(axis.text.x = element_text(angle=0,size = axistextx,vjust=0.4,color="black"))+
+  theme(panel.grid.major.y = element_line(color="black"))+
+  ggtitle("Effect")+
+  theme(plot.title=element_text(size=20,face="bold",color="black"))
+
+Fig3B<-plot_grid(Fig3B_2,Fig3B_1,ncol=2,align = "h",axis = "bt")
+
+ggsave("Fig3/Fig3B.svg",plot=Fig3B,device="svg",height = 10,width = 10)
+
+Fig3B
+
+```
+
+#### Fig 3C: Percentage/Counts of variable length TCS genes
+
+##### Get number and percentage of variable gene lengths for TCSs calculated from blastn search across Staphopia
+```{r warning=FALSE}
+HKRR_var<-read.table("Fig3/response_regulator_length-variation.txt",header=T,sep="\t",stringsAsFactors = F)
+HKRR_var$non_variable<-HKRR_var$total-HKRR_var$variable
+rownames(HKRR_var)<-HKRR_var$gene
+```
+
+```{r warning=FALSE}
+a <- ifelse(HKRR_var$operon == "agr", "red", "black")
+Fig3C<-ggplot(data=HKRR_var)+
+  geom_bar(aes(x=as.factor(operon),y=percentage,color=type,fill=type),stat = "identity",width=0.75,size=1,position=position_dodge())+
+  scale_color_manual(values=c("black","grey"))+
+  scale_fill_manual(values=c("black","grey"))+
+  theme_tinyhand() +
+  theme(axis.text.x = element_text(face = "bold.italic",angle=45,size = axistextx,margin=margin(t=0,r=0,b=0,l=0),hjust=0.9,color=c("red",rep("black",times=6))),axis.text.y=element_text(size=axistexty)) + 
+  theme(axis.title.y=element_text(size=axistitley,vjust=4,color="black",margin=margin(t=0,r=20,b=0,l=0)))+ 
+  theme(legend.position = "right",legend.text=element_text(size=legendtext),legend.key.size = unit(0.7, 'cm'),legend.title = element_blank()) +
+  theme(panel.grid.major.x = element_blank())+
+  ylab("Percentage of strains with\nnon-canonical gene length") + xlab("") +
+  geom_vline(xintercept = 1.5)
+
+ggsave("Fig3/Fig3C.svg",plot=Fig3C,device="svg",height = 5,width = 7,units = "in",dpi=600)
+
+Fig3C
+```
+
+##### Statistics: RATE MODEL WITH OFFSET for gene length and total no. of samples using negative binomial regression
+
+```{r warning=FALSE}
+data<-HKRR_var[,c(2,4,5,7)]
+data$logtotal<-log(data$total*data$canon_len)
+
+nb.model<-glm.nb(variable~operon+offset(logtotal),data)
+
+summary(nb.model)
+marginal<-emmeans(nb.model,~operon)
+pairs(marginal)
+
+```
+
+### Fig 4
+
+#### Fig 4A: Frequency of frameshift mutations occurring at each position in real vs simulated data in dereplicated set of CC5, CC8, CC22 and CC30 genomes
+
+```{r warning=FALSE}
+
+x<-read.table(file="Fig4/drep_CC_fs_pos_POSITIONS.txt",sep="\t",header=F)
+y<-read.table(file="Fig4/simulated_CC_fs_pos_POSITIONS.txt",sep="\t",header=F)
+
+```
+
+```{r warning=FALSE, fig.width=10, fig.height=5}
+
+Fig4A_1<-ggplot(data=NULL)+
+  geom_bar(data=x,aes(x=forcats::fct_infreq(as.factor(V1))),stat="count",width=0.07,color="black") +
+  theme_ipsum(base_family = "Arial") +
+    theme(axis.text.x=element_blank())+
+  theme(axis.text.y=element_text(size=axistexty,color="black"))+
+  theme(axis.title.x=element_text(size=axistitlex,color="black",face="bold",margin = margin(t = 20, r = 0, b = 0, l = 0)))+
+  theme(axis.title.y=element_text(size=axistitley,color="black",margin = margin(t = 0, r = 20, b = 0, l = 0)))+
+  theme(panel.grid.major.x = element_blank()) +
+  labs(x="Position",y="Number of occurrences") +
+  ylim(0,40)
+
+Fig4A_2<-ggplot(data=NULL)+
+  geom_bar(data=y,aes(x=forcats::fct_infreq(as.factor(V1))),stat="count",width=0.25,color="black") +
+  theme_ipsum(base_family = "Arial") +
+  theme(axis.text.x=element_blank())+
+  theme(axis.text.y=element_text(size=axistexty,color="black"))+
+  theme(axis.title.x=element_text(size=axistitlex,color="black",face="bold",margin = margin(t = 20, r = 0, b = 0, l = 0)))+
+  theme(axis.title.y=element_text(size=axistitley,color="black",margin = margin(t = 0, r = 20, b = 0, l = 0)))+
+  theme(panel.grid.major.x = element_blank()) +
+  #theme(axis.text.x = element_blank())+
+  labs(x="Position",y="Number of occurrences ") +
+  ylim(0,40)
+
+Fig4A<-plot_grid(Fig4A_1,Fig4A_2,ncol=2)
+
+ggsave("Fig4/Fig4A.svg",plot=Fig4A,device="svg",height = 5,width = 10)
+
+Fig4A
+
+#Compare real and simulated variant position distributions
+ks.test(x$V1,y$V1)
+
+```
+
+#### Fig 4B: Number of frameshifts per site in real and randomized data
+
+##### Read phylogenetic trees from dereplicated CC5, CC8, CC22, CC30 dataset
+
+```{r warning=FALSE}
+tree_CC30<-read.tree(file='Fig4/CC30/CC30_parsnp_iqtree.tree')
+tree_CC22<-read.tree(file='Fig4/CC22/CC22_parsnp_iqtree.tree')
+tree_CC8<-read.tree(file='Fig4/CC8/CC8_parsnp_iqtree.tree')
+tree_CC5<-read.tree(file='Fig4/CC5/CC5_parsnp_iqtree.tree')
+```
+
+##### Read consistency index report - HomoplasyFinder output for REAL data
+
+```{r warning=FALSE}
+
+CC8_ci<-read.table("Fig4/CC8/consistencyIndexReport_25-02-21.txt",sep="\t",header=T)
+CC8_fs_counts<-read.table("Fig4/CC8/CC8_reps_fs_POS_count.txt",sep="\t",header=F)
+colnames(CC8_fs_counts)<-c("POS","fs_counts")
+CC8_ci<-merge(CC8_ci,CC8_fs_counts,by.x="Start",by.y="POS")
+CC8_ci['CC']="CC8"
+
+CC30_ci<-read.table("Fig4/CC30/consistencyIndexReport_25-02-21.txt",sep="\t",header=T)
+CC30_fs_counts<-read.table("Fig4/CC30/CC30_reps_fs_POS_count.txt",sep="\t",header=F)
+colnames(CC30_fs_counts)<-c("POS","fs_counts")
+CC30_ci<-merge(CC30_ci,CC30_fs_counts,by.x="Start",by.y="POS")
+CC30_ci['CC']="CC30"
+
+CC22_ci<-read.table("Fig4/CC22/consistencyIndexReport_25-02-21.txt",sep="\t",header=T)
+CC22_fs_counts<-read.table("Fig4/CC22/CC22_reps_fs_POS_count.txt",sep="\t",header=F)
+colnames(CC22_fs_counts)<-c("POS","fs_counts")
+CC22_ci<-merge(CC22_ci,CC22_fs_counts,by.x="Start",by.y="POS")
+CC22_ci['CC']="CC22"
+
+CC5_ci<-read.table("Fig4/CC5/consistencyIndexReport_25-02-21.txt",sep="\t",header=T)
+CC5_fs_counts<-read.table("Fig4/CC5/CC5_reps_fs_POS_count.txt",sep="\t",header=F)
+colnames(CC5_fs_counts)<-c("POS","fs_counts")
+CC5_ci<-merge(CC5_ci,CC5_fs_counts,by.x="Start",by.y="POS")
+CC5_ci['CC']="CC5"
+
+CC_reps_ci_REAL<-rbind(CC8_ci,CC5_ci,CC22_ci,CC30_ci)
+```
+
+```{r warning=FALSE}
+
+Fig4B_1<-ggplot(data=CC_reps_ci_REAL[CC_reps_ci_REAL$fs_counts>1,])+
+  geom_point(aes(x=fs_counts,y=as.numeric(ConsistencyIndex),fill=CC),size=4,shape=21,position = position_jitter(width = 0.35,height=0.01),color="black")+
+  geom_smooth(method="lm",formula = y ~ I(1/x),aes(x=fs_counts,y=as.numeric(ConsistencyIndex)))+
+  theme_ipsum(base_family = "Arial")+
+  scale_x_continuous(breaks=pretty_breaks(n=8))+
+  scale_y_continuous(breaks=pretty_breaks(n=8))+
+  theme(axis.text.x=element_text(size=axistextx,color="black"))+
+  theme(axis.text.y=element_text(size=axistexty,color="black"))+
+  theme(axis.title.x=element_text(size=axistitlex,color="black",face="bold",margin = margin(t = 20, r = 0, b = 0, l = 0)))+
+  theme(axis.title.y=element_text(size=axistitley,color="black",margin = margin(t = 0, r = 20, b = 0, l = 0)))+
+  theme(legend.position = "none")+
+  labs(x="Number of occurrences",y="Consistency Index")+
+  scale_fill_manual(values=cividis(4))+
+  ylim(0,1)+
+  scale_x_continuous(breaks=c(10,20,30,40))
+
+```
+
+##### Read consistency index report - HomoplasyFinder output for SHUFFLED data
+
+```{r warning=FALSE, eval=FALSE, include=TRUE}
+
+#TIP LABEL RANDOMIZATION (Shuffle given tree tips and write to file. Done 100 times for each CC (CC5,8,22,30)
+for(i in 1:100) {
+  temp <- tree
+  randtips <- sample(temp$tip.label, length(temp$tip.label))
+  temp$tip.label <- randtips
+  write.tree(temp,file=paste("PATH/TO/tree_shuffle_",i,".tree",sep=""))
+}
+
+```
+
+```{r warning=FALSE}
+
+CC8_ci<-read.table("Fig4/CC8/CC8_tip_shuffle_CI_report.txt",sep="\t",header=T)
+CC8_fs_counts<-read.table("Fig4/CC8/CC8_reps_fs_POS_count.txt",sep="\t",header=F)
+colnames(CC8_fs_counts)<-c("POS","fs_counts")
+CC8_ci<-merge(CC8_ci,CC8_fs_counts,by.x="Start",by.y="POS")
+CC8_ci['CC']="CC8"
+
+CC30_ci<-read.table("Fig4/CC30/CC30_tip_shuffle_CI_report.txt",sep="\t",header=T)
+CC30_fs_counts<-read.table("Fig4/CC30/CC30_reps_fs_POS_count.txt",sep="\t",header=F)
+colnames(CC30_fs_counts)<-c("POS","fs_counts")
+CC30_ci<-merge(CC30_ci,CC30_fs_counts,by.x="Start",by.y="POS")
+CC30_ci['CC']="CC30"
+
+CC22_ci<-read.table("Fig4/CC22/CC22_tip_shuffle_CI_report.txt",sep="\t",header=T)
+CC22_fs_counts<-read.table("Fig4/CC22/CC22_reps_fs_POS_count.txt",sep="\t",header=F)
+colnames(CC22_fs_counts)<-c("POS","fs_counts")
+CC22_ci<-merge(CC22_ci,CC22_fs_counts,by.x="Start",by.y="POS")
+CC22_ci['CC']="CC22"
+
+CC5_ci<-read.table("Fig4/CC5/CC5_tip_shuffle_CI_report.txt",sep="\t",header=T)
+CC5_fs_counts<-read.table("Fig4/CC5/CC5_reps_fs_POS_count.txt",sep="\t",header=F)
+colnames(CC5_fs_counts)<-c("POS","fs_counts")
+CC5_ci<-merge(CC5_ci,CC5_fs_counts,by.x="Start",by.y="POS")
+CC5_ci['CC']="CC5"
+
+CC_reps_ci_SHUF<-rbind(distinct(CC8_ci),distinct(CC5_ci),distinct(CC22_ci),distinct(CC30_ci))
+```
+
+```{r warning=FALSE, fig.width=10, fig.height=5}
+
+Fig4B_2<-ggplot(data=CC_reps_ci_SHUF[CC_reps_ci_SHUF$fs_counts>1,])+
+  geom_point(aes(x=fs_counts,y=as.numeric(ConsistencyIndex),fill=CC),size=4,shape=21,position = position_jitter(width = 0.35,height=0.01),color="black")+
+  geom_smooth(method="lm",formula = y ~ I(1/x),aes(x=fs_counts,y=as.numeric(ConsistencyIndex)))+
+  theme_ipsum(base_family = "Arial")+
+  scale_x_continuous(breaks=pretty_breaks(n=8))+
+  scale_y_continuous(breaks=pretty_breaks(n=8))+
+  theme(axis.text.x=element_text(size=axistextx,color="black"))+
+  theme(axis.text.y=element_text(size=axistexty,color="black"))+
+  theme(axis.title.x=element_text(size=axistitlex,color="black",face="bold",margin = margin(t = 20, r = 0, b = 0, l = 0)))+
+  theme(axis.title.y=element_text(size=axistitley,color="black",margin = margin(t = 0, r = 20, b = 0, l = 0)))+
+  theme(legend.position = "right")+
+  labs(x="Number of occurrences",y="Consistency Index ")+
+  scale_fill_manual(values=cividis(4))+
+  ylim(0,1)+
+  scale_x_continuous(breaks=c(10,20,30,40))
+
+Fig4B<-plot_grid(Fig4B_1,Fig4B_2,ncol=2)
+
+
+Fig4B
+
+ggsave("Fig4/Fig4B.svg",plot=Fig4B,device="svg",height = 5,width = 10)
+
+```
+
+### Supplementals
+
+```{r warning=FALSE, include=TRUE, message=FALSE}
+
+library(Amelia)
+library(dplyr)
+library(car)
+library(randomForest)
+library(data.table)
+library(ROCR)
+library(caret)
+library(xgboost)
+library(gt)
+library(gtsummary)
+library(grid)
+library(gridExtra)
+```
+
+```{r warning=FALSE}
+
+#https://www.machinelearningplus.com/machine-learning/caret-package/
+
+
+#################################################
+#dataset
+################################################
+
+metadata<-read.table("Supplementals/Staphopia_metadata_stage3.4.txt",header = T, sep=",",na.strings = c("","NA"), fill=FALSE)
+metadata<-merge(info[,c(2,13,18)],metadata[,c(1,2,3,19,20,21)],by="ID")
+
+data<-metadata[,2:8]
+data<-na.omit(data)
+
+#Remove low frequency factor levels
+data<-data %>% group_by(host_body_site.y) %>% filter(n()>=50)
+data<-data %>% group_by(host_status.y) %>% filter(n()>=50)
+data<-data %>% group_by(host.y) %>% filter(n()>=50)
+
+data$fs<-as.factor(data$fs)
+data$gp<-as.factor(data$gp)
+data$CC<-as.factor(data$CC)
+
+set.seed(1000)
+pos_index<-sample(which(data$fs == "1"),400)
+neg_index<-sample(which(data$fs == "0"),400)
+indexes<-c(pos_index,neg_index)
+
+train<-data[indexes,]
+test<-data[-indexes,]
+
+#################################################
+#CLASSIFIER
+################################################
+
+#10 fold cross validation
+
+control <- trainControl(method="repeatedcv", number=10,repeats=3)
+train_metric<-'Kappa'
+
+rf_classifier <- train(fs~., data=train, method="rf", trControl=control,metric=train_metric)
+
+glm_classifier <- train(fs~., data=train, method="glm", trControl=control,metric=train_metric)
+
+xgb_classifier <- train(fs~., data=train, method="xgbTree", trControl=control,metric=train_metric)
+
+knn_classifier <- train(fs~., data=train, method="knn", trControl=control,metric=train_metric)
+
+rf_predict<-predict(rf_classifier,test)
+glm_predict<-predict(glm_classifier,test)
+xgb_predict<-predict(xgb_classifier,test)
+knn_predict<-predict(knn_classifier,test)
+
+#confusionMatrix(reference=test$fs,data=rf_predict,mode='everything',positive = "1")
+#confusionMatrix(reference=test$fs,data=xgb_predict,mode='everything',positive = "1")
+#confusionMatrix(reference=test$fs,data=glm_predict,mode='everything',positive = "1")
+#confusionMatrix(reference=test$fs,data=knn_predict,mode='everything',positive = "1")
+
+summary_classifiers<-as.data.frame(cbind((as.matrix(confusionMatrix(reference=test$fs,data=glm_predict,mode='everything',positive = "1"),what="classes")),(as.matrix(confusionMatrix(reference=test$fs,data=,rf_predict,mode='everything',positive = "1"),what="classes")),(as.matrix(confusionMatrix(reference=test$fs,data=xgb_predict,mode='everything',positive = "1"),what="classes")),(as.matrix(confusionMatrix(reference=test$fs,data=knn_predict,mode='everything',positive = "1"),what="classes"))))
+
+colnames(summary_classifiers)<-c("GLM","RF","XGB","KNN")
+
+numeric_columns <- sapply(summary_classifiers, mode) == 'numeric'
+summary_classifiers[numeric_columns] <-  round(summary_classifiers[numeric_columns], 3)
+
+write.table(summary_classifiers,file="Supplementals/TableS2.csv",quote=F,row.names=T,col.names=T,sep=",")
+
+models_compare<-resamples(list(GLM=glm_classifier,RF=rf_classifier,XGB=xgb_classifier,KNN=knn_classifier))
+summary(models_compare)
+scales <- list(x=list(relation="free"), y=list(relation="free"))
+bwplot(models_compare, scales=scales)
+
+```
+
+
+
+
+
