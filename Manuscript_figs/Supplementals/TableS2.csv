@@ -1,0 +1,12 @@
+GLM,RF,XGB,KNN
+Sensitivity,0.561,0.617,0.607,0.645
+Specificity,0.513,0.572,0.555,0.516
+Pos Pred Value,0.012,0.014,0.014,0.013
+Neg Pred Value,0.991,0.993,0.993,0.993
+Precision,0.012,0.014,0.014,0.013
+Recall,0.561,0.617,0.607,0.645
+F1,0.023,0.028,0.027,0.026
+Prevalence,0.01,0.01,0.01,0.01
+Detection Rate,0.006,0.006,0.006,0.006
+Detection Prevalence,0.487,0.43,0.447,0.486
+Balanced Accuracy,0.537,0.594,0.581,0.58
