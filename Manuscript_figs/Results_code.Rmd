@@ -1,5 +1,5 @@
 ---
-title: Figures - Convergent evolution of frameshifts in the Staphylococcus aureus accessory gene regulator (agr) operon suggests conserved strategies for virulence regulation
+title: Figures - Species-wide phylogenomics of the Staphylococcus aureus agr operon reveals convergent evolution of frameshift mutations
 author: "Vishnu Raghuram"
 date: "6/24/2021"
 output:
