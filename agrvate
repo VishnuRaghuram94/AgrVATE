@@ -5,7 +5,7 @@
 
 
 
-version="1.0.1"
+version="1.0.2"
 USAGE=$(echo -e "\n\
 AgrVATE: Agr Variant Assessment & Typing Engine \n\n\
 VERSION: agrvate v$version \n\n\
@@ -363,7 +363,7 @@ if [[ $mumm -eq 0 ]] #If option --mummer not enabled, do usearch
 		echo -e "$fna_name\t$agr_gp\t$agr_match\t$canonical\t$multiple\t$fs" >> $fna_name-results/$fna_name-summary.tab
 		#Error report file
 		echo -e "$bname\t$input_check\t$databases_check\t$outdir_check\t$agr_typing\t$usearch_check\t$snippy_check" >> $bname-error-report.tab
-		exit 1
+		exit 0
 	fi
 	
 	#In-silico PCR using predefined primers(agr_operon_primers.fa) to extract agr operon
@@ -377,10 +377,14 @@ else
 	 then
 		usearch_check="pass"
 		echo "Mummer successful"
+		echo "Extracting agr operon from mummer output"
+		cut -f3,4,13 $fna_name-results/$fna_name-mummer/out.1coords | awk '{if($1<$2) print $3":"$1"-"$2; else print $3":"$2"-"$1;}' | xargs -I {} samtools faidx $fasta_path {} > $fna_name-results/$fna_name-agr_operon.fna
 		if [[ $(cat $fna_name-results/$fna_name-mummer/out.1coords | wc -l) -eq 1 ]]
 		 then
-			echo "Extracting agr operon from mummer output"
-			cut -f3,4,13 $fna_name-results/$fna_name-mummer/out.1coords | awk '{if($1<$2) print $3":"$1"-"$2; else print $3":"$2"-"$1;}' | xargs -I {} samtools faidx $fasta_path {} > $fna_name-results/$fna_name-agr_operon.fna
+			echo "Mummer alignment is contiguous"
+		elif [[ $(cat $fna_name-results/$fna_name-mummer/out.1coords | wc -l) > 1 ]]
+		 then
+			echo "Mummer alignment is not contiguous, extracted all fragments"
 		fi 
 	 else
 		1>&2 echo -e "Error running mummer, please make sure mummer is installed correctly"
