@@ -1,14 +1,18 @@
 ---
-title: Figures - Species-wide phylogenomics of the Staphylococcus aureus agr operon reveals convergent evolution of frameshift mutations
+title: Figures - Species-wide phylogenomics of the Staphylococcus aureus agr operon
+  reveals convergent evolution of frameshift mutations
 author: "Vishnu Raghuram"
-date: "6/24/2021"
+date: "10/26/2021"
 output:
   html_document: default
+  pdf_document: default
 ---
 
 ### Load libraries
 
 ```{r warning=FALSE, include=TRUE, message=FALSE}
+  setwd("D:/OneDrive - Emory University/TR/Other stuff/agr_project/mSpectrum revision code/")
+
 library(Biostrings)
 library(dplyr)
 library(viridis)
@@ -26,6 +30,10 @@ library(tidyverse)
 library(ggtree)
 library(svglite)
 library(ggtext)
+library(ape)
+library(ggnewscale)
+library(phytools)
+library(RColorBrewer)
 
 
 axistextx<-20
@@ -96,6 +104,12 @@ x<-data.frame(subset(info[(info$host_body_site.y == "blood" | info$host_body_sit
 
 #### Fig 1D: Distribution of agr groups across blood, nares, respiratory and skin isolates
 ```{r warning=FALSE, fig.height=7}
+library(chisq.posthoc.test)
+#chisq test contingency table 
+contable<-as.data.frame(pivot_wider(x[,c(1,2,3)],names_from = c(host_body_site.y),values_from = n))
+row.names(contable)<-contable$gp
+chisq.test(contable[,c(2,3,4)])
+chisq.posthoc.test(contable[,c(2,3,4)])
 
 Fig1D<-ggplot(data=x,aes(fill=gp))+
   geom_bar(aes(x=as.factor(host_body_site.y),y=freq*100),stat="identity",color="black",width = 0.25,size=1.25) +
@@ -161,26 +175,40 @@ Fig2A
 
 #### Read Staphopia NRD set phylogenetic tree, agrA clustering table and NRD AgrVATE summary
 ```{r warning=FALSE}
-tree_genome<-read.tree(file='Fig2/nrd_genomes_parsnp_filtered.mfa.treefile')
+
 agrA_type<-read.table(file="Fig2/agrA_clusterID-acc.txt",sep="\t",header = F,stringsAsFactors = F)
 colnames(agrA_type)<-c("agrA_type","acc")
 nrd_agr_summary<-read.table(file="Fig2/nrd_agrvate_summary.tab",header=T)
+nrd_agr_summary$gp<-ifelse(nrd_agr_summary$multiple_agr=="m","m",nrd_agr_summary$gp)
+NRD_CC<-read.table(file="Fig2/NRD_CC.tab",header=F)
 
-```
-
-
-```{r warning=FALSE,fig.width=8,fig.height=6}
-
-#Set names for major and minor AACRs, call other AACRs "Other"
-
-x<-merge(nrd_agr_summary,agrA_type,by="acc",all=T)
+x<-merge(nrd_agr_summary,agrA_type,by="acc")
 x$agrA_type[x$agrA_type!="337" & x$agrA_type!="283"]<-"Other"
 x$agrA_type[x$agrA_type=="337"]<-"agrA-K"
 x$agrA_type[x$agrA_type=="283"]<-"agrA-R"
 rownames(x)<-x$acc
 
-Fig2C_1<-ggtree(tree_genome,layout = 'rectangular',branch.length = "1",size=0.8,color="black") %<+% x + 
-  geom_tippoint(size=1.5,aes(color=agrA_type))+
+```
+
+
+```{r fig.width=10,fig.height=10}
+##REVISED TREE FIG 2C
+
+#Root tree at ST93 strain 
+
+tree_genome_2<-read.tree(file='Fig2/nrd_genomes_parsnp_prefiltered.mfa.treefile')
+tree_genome_2<-drop.tip(tree_genome_2,c("USA300.fna.ref"))
+tree_genome_2<-root(tree_genome_2,outgroup = "SRX456475",resolve.root = T)
+
+
+
+NRD_CC$V1[NRD_CC$V1!="CC1" & NRD_CC$V1!="CC130" & NRD_CC$V1!="CC15" & NRD_CC$V1!="CC22" & NRD_CC$V1!="CC30" & NRD_CC$V1!="CC398" & NRD_CC$V1!="CC45" & NRD_CC$V1!="CC5" & NRD_CC$V1!="CC8" & NRD_CC$V1!="CC95"] <-"Other"
+rownames(NRD_CC)<-NRD_CC$V2
+
+
+Fig2C_1<-ggtree(tree_genome_2,layout = 'rectangular',branch.length = "1",size=0.8,color="black") %<+% x + 
+  geom_tippoint(size=1.5,aes(color=agrA_type)) +
+  geom_hilight(node = 352)+
   theme(legend.position = "right") +
   guides(shape = guide_legend(override.aes = list(size = 10)))+
   theme_minimal()+
@@ -190,14 +218,16 @@ Fig2C_1<-ggtree(tree_genome,layout = 'rectangular',branch.length = "1",size=0.8,
   theme(legend.position = "right",legend.text=element_text(size=legendtext),legend.key.size = unit(1, 'cm'),legend.title = element_text(size=legendtitle,face="bold"))+
   geom_treescale(x=0.001,y=300, fontsize=5,linesize = 1,offset=5)
 
-Fig2C<-gheatmap(Fig2C_1,x[,c("gp"),drop=F],offset=0,width=0.05,colnames = F,color=NULL)+
-  scale_fill_manual("agr group",values=c(viridis(4)),limits=c("gp1","gp2","gp3","gp4"),labels=c("Group 1","Group 2","Group 3","Group 4"))
+Fig2C_2<-gheatmap(Fig2C_1,x[,c("gp"),drop=F],offset=0,width=0.05,colnames = F,color=NULL)+
+    scale_fill_manual("agr group",values=c(viridis(4)),limits=c("gp1","gp2","gp3","gp4"),labels=c("Group 1","Group 2","Group 3","Group 4"))+new_scale_fill()
 
-ggsave("Fig2/Fig2C.svg",plot=Fig2C,device="svg",width=8,height=6)
+Fig2C<-gheatmap(Fig2C_2,NRD_CC[,c("V1"),drop=F],offset=0.001,width=0.05,colnames=F,color=NULL)+scale_fill_manual("CC",values=c(brewer.pal(8,"Set3"),"wheat2","darkslategray1","grey83"),limits=c("CC1","CC5","CC8","CC15","CC22","CC30","CC45","CC95","CC130","CC398","Other"))
+
+ggsave("Fig2/Fig2C_revised.svg",plot=Fig2C,device="svg",width=10,height=10)
 
 Fig2C
-
 ```
+
 
 #### Fig 2D: LD plot
 
@@ -372,19 +402,25 @@ Fig3B
 
 ```
 
-#### Fig 3C: Percentage/Counts of variable length TCS genes
 
-##### Get number and percentage of variable gene lengths for TCSs calculated from blastn search across Staphopia
+#### REVISED Fig 3C: Percentage/Counts of variable length TCS genes normalized to 1kb
+
+##### Get number and percentage of variable gene lengths for TCSs calculated from blastn search across Staphopia 
 ```{r warning=FALSE}
 HKRR_var<-read.table("Fig3/response_regulator_length-variation.txt",header=T,sep="\t",stringsAsFactors = F)
-HKRR_var$non_variable<-HKRR_var$total-HKRR_var$variable
+
+#Normalize all lengths to 1kb by multiplying with normalization factor
+HKRR_var$norm_factor<-1000/HKRR_var$canon_len
+
+#Calculate length normalized percentages
+HKRR_var$norm_percentage<-(HKRR_var$variable*HKRR_var$norm_factor*100/HKRR_var$total)
 rownames(HKRR_var)<-HKRR_var$gene
 ```
 
 ```{r warning=FALSE}
 a <- ifelse(HKRR_var$operon == "agr", "red", "black")
 Fig3C<-ggplot(data=HKRR_var)+
-  geom_bar(aes(x=as.factor(operon),y=percentage,color=type,fill=type),stat = "identity",width=0.75,size=1,position=position_dodge())+
+  geom_bar(aes(x=as.factor(operon),y=(norm_percentage),color=type,fill=type),stat = "identity",width=0.75,size=1,position=position_dodge())+
   scale_color_manual(values=c("black","grey"))+
   scale_fill_manual(values=c("black","grey"))+
   theme_tinyhand() +
@@ -397,22 +433,22 @@ Fig3C<-ggplot(data=HKRR_var)+
 
 ggsave("Fig3/Fig3C.svg",plot=Fig3C,device="svg",height = 5,width = 7,units = "in",dpi=600)
 
+
 Fig3C
-```
 
-##### Statistics: RATE MODEL WITH OFFSET for gene length and total no. of samples using negative binomial regression
 
-```{r warning=FALSE}
-data<-HKRR_var[,c(2,4,5,7)]
-data$logtotal<-log(data$total*data$canon_len)
+##### Statistics: RATE MODEL WITH OFFSET for total no. of samples using negative binomial regression
 
-nb.model<-glm.nb(variable~operon+offset(logtotal),data)
+data<-HKRR_var[,c(2,4,5,9,10)]
+
+nb.model<-glm.nb((norm_factor*variable)~operon+offset(log(total)),data)
 
 summary(nb.model)
 marginal<-emmeans(nb.model,~operon)
 pairs(marginal)
 
 ```
+
 
 ### Fig 4
 
@@ -424,6 +460,7 @@ x<-read.table(file="Fig4/drep_CC_fs_pos_POSITIONS.txt",sep="\t",header=F)
 y<-read.table(file="Fig4/simulated_CC_fs_pos_POSITIONS.txt",sep="\t",header=F)
 
 ```
+
 
 ```{r warning=FALSE, fig.width=10, fig.height=5}
 
@@ -501,25 +538,24 @@ CC5_ci<-merge(CC5_ci,CC5_fs_counts,by.x="Start",by.y="POS")
 CC5_ci['CC']="CC5"
 
 CC_reps_ci_REAL<-rbind(CC8_ci,CC5_ci,CC22_ci,CC30_ci)
+CC_reps_ci_REAL$MinimumNumberChangesOnTree[CC_reps_ci_REAL$MinimumNumberChangesOnTree=="-"]<-0
 ```
 
 ```{r warning=FALSE}
 
 Fig4B_1<-ggplot(data=CC_reps_ci_REAL[CC_reps_ci_REAL$fs_counts>1,])+
-  geom_point(aes(x=fs_counts,y=as.numeric(ConsistencyIndex),fill=CC),size=4,shape=21,position = position_jitter(width = 0.35,height=0.01),color="black")+
-  geom_smooth(method="lm",formula = y ~ I(1/x),aes(x=fs_counts,y=as.numeric(ConsistencyIndex)))+
+  geom_point(aes(x=fs_counts,y=as.numeric(MinimumNumberChangesOnTree),fill=CC),size=4,shape=21,position = position_jitter(width = 0.35,height=0.01),color="black")+
+  geom_smooth(method="lm",formula = y ~ x,aes(x=fs_counts,y=as.numeric(MinimumNumberChangesOnTree)))+
   theme_ipsum(base_family = "Arial")+
-  scale_x_continuous(breaks=pretty_breaks(n=8))+
-  scale_y_continuous(breaks=pretty_breaks(n=8))+
+  scale_x_continuous(breaks=pretty_breaks(n=5))+
+  scale_y_continuous(breaks=pretty_breaks(n=5))+
   theme(axis.text.x=element_text(size=axistextx,color="black"))+
   theme(axis.text.y=element_text(size=axistexty,color="black"))+
   theme(axis.title.x=element_text(size=axistitlex,color="black",face="bold",margin = margin(t = 20, r = 0, b = 0, l = 0)))+
   theme(axis.title.y=element_text(size=axistitley,color="black",margin = margin(t = 0, r = 20, b = 0, l = 0)))+
   theme(legend.position = "none")+
-  labs(x="Number of occurrences",y="Consistency Index")+
-  scale_fill_manual(values=cividis(4))+
-  ylim(0,1)+
-  scale_x_continuous(breaks=c(10,20,30,40))
+  labs(x="Number of occurrences of\nframeshift mutations",y="Minimum no. of\nchanges on tree")+
+  scale_fill_manual(values=cividis(4))
 
 ```
 
@@ -564,32 +600,31 @@ CC5_ci<-merge(CC5_ci,CC5_fs_counts,by.x="Start",by.y="POS")
 CC5_ci['CC']="CC5"
 
 CC_reps_ci_SHUF<-rbind(distinct(CC8_ci),distinct(CC5_ci),distinct(CC22_ci),distinct(CC30_ci))
+CC_reps_ci_SHUF$MinimumNumberChangesOnTree[CC_reps_ci_SHUF$MinimumNumberChangesOnTree=="-"]<-0
 ```
 
 ```{r warning=FALSE, fig.width=10, fig.height=5}
 
 Fig4B_2<-ggplot(data=CC_reps_ci_SHUF[CC_reps_ci_SHUF$fs_counts>1,])+
-  geom_point(aes(x=fs_counts,y=as.numeric(ConsistencyIndex),fill=CC),size=4,shape=21,position = position_jitter(width = 0.35,height=0.01),color="black")+
-  geom_smooth(method="lm",formula = y ~ I(1/x),aes(x=fs_counts,y=as.numeric(ConsistencyIndex)))+
+  geom_point(aes(x=fs_counts,y=as.numeric(MinimumNumberChangesOnTree),fill=CC),size=4,shape=21,position = position_jitter(width = 0.35,height=0.01),color="black")+
+  geom_smooth(method="lm",formula = y ~ x,aes(x=fs_counts,y=as.numeric(MinimumNumberChangesOnTree)))+
   theme_ipsum(base_family = "Arial")+
-  scale_x_continuous(breaks=pretty_breaks(n=8))+
-  scale_y_continuous(breaks=pretty_breaks(n=8))+
+  scale_x_continuous(breaks=pretty_breaks(n=5))+
+  scale_y_continuous(breaks=pretty_breaks(n=5))+
   theme(axis.text.x=element_text(size=axistextx,color="black"))+
   theme(axis.text.y=element_text(size=axistexty,color="black"))+
   theme(axis.title.x=element_text(size=axistitlex,color="black",face="bold",margin = margin(t = 20, r = 0, b = 0, l = 0)))+
   theme(axis.title.y=element_text(size=axistitley,color="black",margin = margin(t = 0, r = 20, b = 0, l = 0)))+
-  theme(legend.position = "right")+
-  labs(x="Number of occurrences",y="Consistency Index ")+
-  scale_fill_manual(values=cividis(4))+
-  ylim(0,1)+
-  scale_x_continuous(breaks=c(10,20,30,40))
+  theme(legend.position = "none")+
+  labs(x="Number of occurrences of\nframeshift mutations",y="Minimum no. of\nchanges on tree")+
+  scale_fill_manual(values=cividis(4))
 
 Fig4B<-plot_grid(Fig4B_1,Fig4B_2,ncol=2)
 
 
 Fig4B
 
-ggsave("Fig4/Fig4B.svg",plot=Fig4B,device="svg",height = 5,width = 10)
+ggsave("Fig4/Fig4B.svg",plot=Fig4B,device="svg",height = 6,width = 12)
 
 ```
 
@@ -612,6 +647,8 @@ library(gridExtra)
 ```
 
 ```{r warning=FALSE}
+
+#SUPPLEMENTAL TABLE S2
 
 #https://www.machinelearningplus.com/machine-learning/caret-package/
 
@@ -687,6 +724,67 @@ bwplot(models_compare, scales=scales)
 ```
 
 
+```{r warning=FALSE}
+# SUPPLEMENTAL FIG S4
 
+#39174 operons with KNOWN frameshift status
+#2997 KNOWN fs mutations
+
+#Rate of occurrence of fs = 2997/39174 = 0.07650482462 = lambda
+
+mut_rates<-data.frame(table(info$no_fs[info$no_fs!="u"]))
+mut_rates$expected_Freq<-dpois(0:2, lambda=0.07650482462)
+mut_rates$actual_Freq<-mut_rates$Freq/sum(mut_rates$Freq)
+
+
+FigS4<-ggplot(data=mut_rates,aes(x=Var1,y=expected_Freq))+
+  geom_histogram(data=mut_rates,aes(x=Var1,y=actual_Freq),stat="identity",color="black",fill="white",size=1.5,width=0.33)+
+  geom_line(data=mut_rates,aes(x=Var1,y=expected_Freq,group=1),color="red",size=1.4)+
+  theme_ipsum(base_family = "Arial")+
+  theme(axis.text.x=element_text(size=axistextx,color="black"))+
+  theme(axis.text.y=element_text(size=axistexty,color="black"))+
+  theme(axis.title.x=element_text(size=axistitlex,color="black",face="bold"))+
+  theme(axis.title.y=element_text(size=axistitley,color="black"))+
+  xlab("Number of frameshift mutations")+
+  ylab("Rate of frameshift mutations")
+
+ggsave("Supplementals/FigS4.svg",plot=FigS4,device="svg",height = 6,width = 6)
+  
+FigS4
+
+colnames(mut_rates)<-c("No. of fs","Frequency","Expected Rate (poisson)","Actual rate")
+
+mut_rates
+
+```
+
+```{r warning=FALSE}
+
+#SUPPLEMENTAL FIG S5
+snpdist<-read.table("Supplementals/nrd_snp-dists.txt",header=F,sep="\t")
+mashdist<-read.table("Supplementals/nrd_mash_dist.txt",header=F,sep="\t")
+
+
+colnames(snpdist)<-c("acc1","acc2","snp_dist")
+colnames(mashdist)<-c("acc1","acc2","mash_dist","p","score")
+
+dists<-merge(mashdist,snpdist,by=c("acc1","acc2"))
+
+FigS5<-ggplot(data=dists[dists$mash_dist<0.0005,],aes(x=snp_dist))+
+  geom_histogram(stat="count",color="black",fill="black",width=5)+
+  theme_ipsum(base_family = "Arial")+
+  theme(axis.text.x=element_text(size=axistextx,color="black"))+
+  theme(axis.text.y=element_text(size=axistexty,color="black"))+
+  theme(axis.title.x=element_text(size=axistitlex,color="black",face="bold"))+
+  theme(axis.title.y=element_text(size=axistitley,color="black"))+
+  xlab("SNP distance")+
+  ylab("Frequency")+
+  geom_vline(xintercept = median(dists$snp_dist[dists$mash_dist<0.0005 & dists$snp_dist!=0]),color="red",size=1)+
+  xlim(1,300)
+
+ggsave("Supplementals/FigS5.svg",plot=FigS5,device="svg",height = 6,width = 6)
+
+FigS5
+```
 
 
