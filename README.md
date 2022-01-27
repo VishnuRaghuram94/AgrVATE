@@ -195,9 +195,9 @@ The columns are ordered by how the processes are carried out. i.e col 1 is the f
 
 # Citation 
 
-Please cite the following preprint if you use AgrVATE in your research. Thank you!
+Please cite the following paper if you use AgrVATE in your research. Thank you!
 
-Raghuram V, Alexander AM, Loo HQ, Petit III RA, Goldberg JB, Read TD, *Species-wide phylogenomics of the Staphylococcus aureus agr operon reveals convergent evolution of frameshift mutations.* **Biorxiv**. (2021), https://doi.org/10.1101/2021.07.29.454156
+Raghuram V, Alexander AM, Loo HQ, Petit RA 3rd, Goldberg JB, Read TD. Species-Wide Phylogenomics of the Staphylococcus aureus Agr Operon Revealed Convergent Evolution of Frameshift Mutations. Microbiol Spectr. 2022 Jan 19;10(1):e0133421. doi: 10.1128/spectrum.01334-21. Epub ahead of print. PMID: 35044202; PMCID: PMC8768832.
 
 # Author 
 
