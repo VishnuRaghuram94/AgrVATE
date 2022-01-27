@@ -1,3 +1,4 @@
 This folder contains the R code and datasets for reproducing figures from the AgrVATE paper 
 
-Preprint: https://doi.org/10.1101/2021.07.29.454156
+Link: 
+https://doi.org/10.1128/spectrum.01334-21
