@@ -12,6 +12,14 @@ AgrVATE accepts a *S. aureus* genome assembly as input and performs a kmer searc
 
 ---
 
+# Citation 
+
+Please cite the following paper if you use AgrVATE in your research. Thank you!
+
+Raghuram V, Alexander AM, Loo HQ, Petit RA 3rd, Goldberg JB, Read TD. Species-Wide Phylogenomics of the Staphylococcus aureus Agr Operon Revealed Convergent Evolution of Frameshift Mutations. Microbiol Spectr. 2022 Jan 19;10(1):e0133421. doi: 10.1128/spectrum.01334-21. Epub ahead of print. PMID: 35044202; PMCID: PMC8768832.
+
+---
+
 # INSTALLATION:
 
 Please see the [PREREQUISITES](#PREREQUISITES) section for all the tools required to run AgrVATE. For ease of use, I recommended you install AgrVATE using [Conda](https://conda.io/en/latest/).
@@ -193,11 +201,6 @@ The columns are ordered by how the processes are carried out. i.e col 1 is the f
 	
 		awk 'FNR==1 && NR!=1 { while (/^#/) getline; } 1 {print}' ./*-error-report.tab > filename.tab
 
-# Citation 
-
-Please cite the following paper if you use AgrVATE in your research. Thank you!
-
-Raghuram V, Alexander AM, Loo HQ, Petit RA 3rd, Goldberg JB, Read TD. Species-Wide Phylogenomics of the Staphylococcus aureus Agr Operon Revealed Convergent Evolution of Frameshift Mutations. Microbiol Spectr. 2022 Jan 19;10(1):e0133421. doi: 10.1128/spectrum.01334-21. Epub ahead of print. PMID: 35044202; PMCID: PMC8768832.
 
 # Author 
 
